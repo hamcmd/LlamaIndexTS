@@ -1,4 +1,8 @@
+import { randomUUID } from "@llamaindex/env";
+import { wrapEventCaller } from "../decorator";
+import { Settings } from "../global";
 import type { MessageContent } from "../llms";
+import { PromptMixin } from "../prompts";
 import { EngineResponse, type NodeWithScore } from "../schema";
 
 /**
@@ -14,16 +18,53 @@ export type QueryBundle = {
 
 export type QueryType = string | QueryBundle;
 
-export interface BaseQueryEngine {
-  query(
-    strOrQueryBundle: QueryType,
-    stream: true,
-  ): Promise<AsyncIterable<EngineResponse>>;
-  query(strOrQueryBundle: QueryType, stream?: false): Promise<EngineResponse>;
+export type BaseQueryParams = {
+  query: QueryType;
+};
 
-  synthesize?(
+export interface StreamingQueryParams extends BaseQueryParams {
+  stream: true;
+}
+
+export interface NonStreamingQueryParams extends BaseQueryParams {
+  stream?: false;
+}
+
+export type QueryFn = (
+  strOrQueryBundle: QueryType,
+  stream?: boolean,
+) => Promise<AsyncIterable<EngineResponse> | EngineResponse>;
+
+export abstract class BaseQueryEngine extends PromptMixin {
+  abstract _query(
     strOrQueryBundle: QueryType,
-    nodes: NodeWithScore[],
-    additionalSources?: Iterator<NodeWithScore>,
-  ): Promise<EngineResponse>;
+    stream?: boolean,
+  ): Promise<AsyncIterable<EngineResponse> | EngineResponse>;
+
+  async retrieve(params: QueryType): Promise<NodeWithScore[]> {
+    throw new Error(
+      "This query engine does not support retrieve, use query directly",
+    );
+  }
+
+  query(params: StreamingQueryParams): Promise<AsyncIterable<EngineResponse>>;
+  query(params: NonStreamingQueryParams): Promise<EngineResponse>;
+  @wrapEventCaller
+  async query(
+    params: StreamingQueryParams | NonStreamingQueryParams,
+  ): Promise<EngineResponse | AsyncIterable<EngineResponse>> {
+    const { stream, query } = params;
+    const id = randomUUID();
+    const callbackManager = Settings.callbackManager;
+    callbackManager.dispatchEvent("query-start", {
+      id,
+      query,
+    });
+    const response = await this._query(query, stream);
+    callbackManager.dispatchEvent("query-end", {
+      id,
+      response,
+    });
+    return response;
+  }
 }

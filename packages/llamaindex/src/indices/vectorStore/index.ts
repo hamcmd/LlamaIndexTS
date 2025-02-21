@@ -1,9 +1,17 @@
 import {
+  ContextChatEngine,
+  type ContextChatEngineOptions,
+} from "@llamaindex/core/chat-engine";
+import { IndexDict, IndexStructType } from "@llamaindex/core/data-structs";
+import {
   DEFAULT_SIMILARITY_TOP_K,
   type BaseEmbedding,
 } from "@llamaindex/core/embeddings";
-import { Settings } from "@llamaindex/core/global";
 import type { MessageContent } from "@llamaindex/core/llms";
+import type { BaseNodePostprocessor } from "@llamaindex/core/postprocessor";
+import type { QueryBundle } from "@llamaindex/core/query-engine";
+import type { BaseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import { BaseRetriever } from "@llamaindex/core/retriever";
 import {
   ImageNode,
   ModalityType,
@@ -13,35 +21,29 @@ import {
   type Document,
   type NodeWithScore,
 } from "@llamaindex/core/schema";
-import { wrapEventCaller } from "@llamaindex/core/utils";
-import type { BaseRetriever, RetrieveParams } from "../../Retriever.js";
-import type { ServiceContext } from "../../ServiceContext.js";
-import { nodeParserFromSettingsOrContext } from "../../Settings.js";
+import type { BaseIndexStore } from "@llamaindex/core/storage/index-store";
+import { extractText } from "@llamaindex/core/utils";
+import { VectorStoreQueryMode } from "@llamaindex/core/vector-store";
+import { Settings } from "../../Settings.js";
 import { RetrieverQueryEngine } from "../../engines/query/RetrieverQueryEngine.js";
 import {
   addNodesToVectorStores,
   runTransformations,
 } from "../../ingestion/IngestionPipeline.js";
 import {
-  DocStoreStrategy,
   createDocStoreStrategy,
+  DocStoreStrategy,
 } from "../../ingestion/strategies/index.js";
-import type { BaseNodePostprocessor } from "../../postprocessors/types.js";
 import type { StorageContext } from "../../storage/StorageContext.js";
 import { storageContextFromDefaults } from "../../storage/StorageContext.js";
-import type { BaseIndexStore } from "../../storage/indexStore/types.js";
-import type { BaseSynthesizer } from "../../synthesizers/types.js";
-import type { QueryEngine } from "../../types.js";
 import type {
+  BaseVectorStore,
   MetadataFilters,
-  VectorStore,
   VectorStoreByType,
   VectorStoreQueryResult,
 } from "../../vector-store/index.js";
-import { VectorStoreQueryMode } from "../../vector-store/types.js";
 import type { BaseIndexInit } from "../BaseIndex.js";
 import { BaseIndex } from "../BaseIndex.js";
-import { IndexDict, IndexStructType } from "../json-to-index-struct.js";
 
 interface IndexStructOptions {
   indexStruct?: IndexDict | undefined;
@@ -49,7 +51,6 @@ interface IndexStructOptions {
 }
 export interface VectorIndexOptions extends IndexStructOptions {
   nodes?: BaseNode[] | undefined;
-  serviceContext?: ServiceContext | undefined;
   storageContext?: StorageContext | undefined;
   vectorStores?: VectorStoreByType | undefined;
   logProgress?: boolean | undefined;
@@ -59,6 +60,12 @@ export interface VectorIndexConstructorProps extends BaseIndexInit<IndexDict> {
   indexStore: BaseIndexStore;
   vectorStores?: VectorStoreByType | undefined;
 }
+
+export type VectorIndexChatEngineOptions = {
+  retriever?: BaseRetriever;
+  similarityTopK?: number;
+  preFilters?: MetadataFilters;
+} & Omit<ContextChatEngineOptions, "retriever">;
 
 /**
  * The VectorStoreIndex, an index that stores the nodes only according to their vector embeddings.
@@ -72,7 +79,7 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
     super(init);
     this.indexStore = init.indexStore;
     this.vectorStores = init.vectorStores ?? init.storageContext.vectorStores;
-    this.embedModel = init.serviceContext?.embedModel;
+    this.embedModel = Settings.embedModel;
   }
 
   /**
@@ -85,7 +92,6 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
   ): Promise<VectorStoreIndex> {
     const storageContext =
       options.storageContext ?? (await storageContextFromDefaults({}));
-    const serviceContext = options.serviceContext;
     const indexStore = storageContext.indexStore;
     const docStore = storageContext.docStore;
 
@@ -104,7 +110,6 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
 
     const index = new this({
       storageContext,
-      serviceContext,
       docStore,
       indexStruct,
       indexStore,
@@ -213,7 +218,6 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
       (args.vectorStores
         ? DocStoreStrategy.UPSERTS
         : DocStoreStrategy.DUPLICATES_ONLY);
-    args.serviceContext = args.serviceContext;
     const docStore = args.storageContext.docStore;
 
     if (args.logProgress) {
@@ -229,20 +233,22 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
     );
     args.nodes = await runTransformations(
       documents,
-      [nodeParserFromSettingsOrContext(args.serviceContext)],
+      [Settings.nodeParser],
       {},
       { docStoreStrategy },
     );
     if (args.logProgress) {
       console.log("Finished parsing documents.");
     }
-    return await this.init(args);
+    try {
+      return await this.init(args);
+    } catch (error) {
+      await docStoreStrategy.rollback(args.storageContext.docStore, args.nodes);
+      throw error;
+    }
   }
 
-  static async fromVectorStores(
-    vectorStores: VectorStoreByType,
-    serviceContext?: ServiceContext,
-  ) {
+  static async fromVectorStores(vectorStores: VectorStoreByType) {
     if (!vectorStores[ModalityType.TEXT]?.storesText) {
       throw new Error(
         "Cannot initialize from a vector store that does not store text",
@@ -256,24 +262,17 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
     const index = await this.init({
       nodes: [],
       storageContext,
-      serviceContext,
     });
 
     return index;
   }
 
-  static async fromVectorStore(
-    vectorStore: VectorStore,
-    serviceContext?: ServiceContext,
-  ) {
-    return this.fromVectorStores(
-      { [ModalityType.TEXT]: vectorStore },
-      serviceContext,
-    );
+  static async fromVectorStore(vectorStore: BaseVectorStore) {
+    return this.fromVectorStores({ [ModalityType.TEXT]: vectorStore });
   }
 
   asRetriever(
-    options?: Omit<VectorIndexRetrieverOptions, "index">,
+    options?: OmitIndex<VectorIndexRetrieverOptions>,
   ): VectorIndexRetriever {
     return new VectorIndexRetriever({ index: this, ...options });
   }
@@ -288,7 +287,7 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
     preFilters?: MetadataFilters;
     nodePostprocessors?: BaseNodePostprocessor[];
     similarityTopK?: number;
-  }): QueryEngine & RetrieverQueryEngine {
+  }): RetrieverQueryEngine {
     const {
       retriever,
       responseSynthesizer,
@@ -297,17 +296,35 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
       similarityTopK,
     } = options ?? {};
     return new RetrieverQueryEngine(
-      retriever ?? this.asRetriever({ similarityTopK }),
+      retriever ?? this.asRetriever({ similarityTopK, filters: preFilters }),
       responseSynthesizer,
-      preFilters,
       nodePostprocessors,
     );
+  }
+
+  /**
+   * Convert the index to a chat engine.
+   * @param options The options for creating the chat engine
+   * @returns A ContextChatEngine that uses the index's retriever to get context for each query
+   */
+  asChatEngine(options: VectorIndexChatEngineOptions = {}) {
+    const {
+      retriever,
+      similarityTopK,
+      preFilters,
+      ...contextChatEngineOptions
+    } = options;
+    return new ContextChatEngine({
+      retriever:
+        retriever ?? this.asRetriever({ similarityTopK, filters: preFilters }),
+      ...contextChatEngineOptions,
+    });
   }
 
   protected async insertNodesToStore(
     newIds: string[],
     nodes: BaseNode[],
-    vectorStore: VectorStore,
+    vectorStore: BaseVectorStore,
   ): Promise<void> {
     // NOTE: if the vector store doesn't store text,
     // we need to add the nodes to the index struct and document store
@@ -357,7 +374,7 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
   }
 
   protected async deleteRefDocFromStore(
-    vectorStore: VectorStore,
+    vectorStore: BaseVectorStore,
     refDocId: string,
   ): Promise<void> {
     await vectorStore.delete(refDocId);
@@ -382,33 +399,45 @@ export class VectorStoreIndex extends BaseIndex<IndexDict> {
 
 type TopKMap = { [P in ModalityType]: number };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type OmitIndex<T> = T extends { index: any } ? Omit<T, "index"> : never;
+
 export type VectorIndexRetrieverOptions = {
   index: VectorStoreIndex;
-  similarityTopK?: number | undefined;
-  topK?: TopKMap | undefined;
-  filters?: MetadataFilters;
-};
+  filters?: MetadataFilters | undefined;
+  mode?: VectorStoreQueryMode;
+} & (
+  | {
+      topK?: TopKMap | undefined;
+    }
+  | {
+      similarityTopK?: number | undefined;
+    }
+);
 
-export class VectorIndexRetriever implements BaseRetriever {
+export class VectorIndexRetriever extends BaseRetriever {
   index: VectorStoreIndex;
   topK: TopKMap;
 
-  serviceContext?: ServiceContext | undefined;
   filters?: MetadataFilters | undefined;
+  queryMode?: VectorStoreQueryMode | undefined;
 
-  constructor({
-    index,
-    similarityTopK,
-    topK,
-    filters,
-  }: VectorIndexRetrieverOptions) {
-    this.index = index;
-    this.serviceContext = this.index.serviceContext;
-    this.topK = topK ?? {
-      [ModalityType.TEXT]: similarityTopK ?? DEFAULT_SIMILARITY_TOP_K,
-      [ModalityType.IMAGE]: DEFAULT_SIMILARITY_TOP_K,
-    };
-    this.filters = filters;
+  constructor(options: VectorIndexRetrieverOptions) {
+    super();
+    this.index = options.index;
+    this.queryMode = options.mode ?? VectorStoreQueryMode.DEFAULT;
+    if ("topK" in options && options.topK) {
+      this.topK = options.topK;
+    } else {
+      this.topK = {
+        [ModalityType.TEXT]:
+          "similarityTopK" in options && options.similarityTopK
+            ? options.similarityTopK
+            : DEFAULT_SIMILARITY_TOP_K,
+        [ModalityType.IMAGE]: DEFAULT_SIMILARITY_TOP_K,
+      };
+    }
+    this.filters = options.filters;
   }
 
   /**
@@ -418,44 +447,34 @@ export class VectorIndexRetriever implements BaseRetriever {
     this.topK[ModalityType.TEXT] = similarityTopK;
   }
 
-  @wrapEventCaller
-  async retrieve({
-    query,
-    preFilters,
-  }: RetrieveParams): Promise<NodeWithScore[]> {
-    Settings.callbackManager.dispatchEvent("retrieve-start", {
-      query,
-    });
+  async _retrieve(params: QueryBundle): Promise<NodeWithScore[]> {
+    const { query } = params;
     const vectorStores = this.index.vectorStores;
     let nodesWithScores: NodeWithScore[] = [];
 
     for (const type in vectorStores) {
-      const vectorStore: VectorStore = vectorStores[type as ModalityType]!;
+      const vectorStore: BaseVectorStore = vectorStores[type as ModalityType]!;
       nodesWithScores = nodesWithScores.concat(
-        await this.retrieveQuery(
-          query,
-          type as ModalityType,
-          vectorStore,
-          preFilters as MetadataFilters,
-        ),
+        await this.retrieveQuery(query, type as ModalityType, vectorStore),
       );
     }
-    Settings.callbackManager.dispatchEvent("retrieve-end", {
-      query,
-      nodes: nodesWithScores,
-    });
     return nodesWithScores;
   }
 
   protected async retrieveQuery(
     query: MessageContent,
     type: ModalityType,
-    vectorStore: VectorStore,
+    vectorStore: BaseVectorStore,
     filters?: MetadataFilters,
   ): Promise<NodeWithScore[]> {
     // convert string message to multi-modal format
+
+    let queryStr = query;
     if (typeof query === "string") {
-      query = [{ type: "text", text: query }];
+      queryStr = query;
+      query = [{ type: "text", text: queryStr }];
+    } else {
+      queryStr = extractText(query);
     }
     // overwrite embed model if specified, otherwise use the one from the vector store
     const embedModel = this.index.embedModel ?? vectorStore.embedModel;
@@ -465,8 +484,9 @@ export class VectorIndexRetriever implements BaseRetriever {
       const queryEmbedding = await embedModel.getQueryEmbedding(item);
       if (queryEmbedding) {
         const result = await vectorStore.query({
+          queryStr,
           queryEmbedding,
-          mode: VectorStoreQueryMode.DEFAULT,
+          mode: this.queryMode ?? VectorStoreQueryMode.DEFAULT,
           similarityTopK: this.topK[type]!,
           filters: this.filters ?? filters ?? undefined,
         });

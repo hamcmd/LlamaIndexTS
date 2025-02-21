@@ -1,27 +1,24 @@
+import {
+  BaseChatEngine,
+  type NonStreamingChatEngineParams,
+  type StreamingChatEngineParams,
+} from "@llamaindex/core/chat-engine";
+import { wrapEventCaller } from "@llamaindex/core/decorator";
 import type { ChatMessage, LLM } from "@llamaindex/core/llms";
+import { BaseMemory, ChatMemoryBuffer } from "@llamaindex/core/memory";
 import {
   type CondenseQuestionPrompt,
   defaultCondenseQuestionPrompt,
   type ModuleRecord,
-  PromptMixin,
 } from "@llamaindex/core/prompts";
+import type { BaseQueryEngine } from "@llamaindex/core/query-engine";
 import type { EngineResponse } from "@llamaindex/core/schema";
 import {
   extractText,
   messagesToHistory,
   streamReducer,
-  wrapEventCaller,
 } from "@llamaindex/core/utils";
-import type { ChatHistory } from "../../ChatHistory.js";
-import { getHistory } from "../../ChatHistory.js";
-import type { ServiceContext } from "../../ServiceContext.js";
-import { llmFromSettingsOrContext } from "../../Settings.js";
-import type { QueryEngine } from "../../types.js";
-import type {
-  ChatEngine,
-  ChatEngineParamsNonStreaming,
-  ChatEngineParamsStreaming,
-} from "./types.js";
+import { Settings } from "../../Settings.js";
 
 /**
  * CondenseQuestionChatEngine is used in conjunction with a Index (for example VectorStoreIndex).
@@ -33,27 +30,28 @@ import type {
  * underlying data. It performs less well when the chat messages are not questions about the
  * data, or are very referential to previous context.
  */
-
-export class CondenseQuestionChatEngine
-  extends PromptMixin
-  implements ChatEngine
-{
-  queryEngine: QueryEngine;
-  chatHistory: ChatHistory;
+export class CondenseQuestionChatEngine extends BaseChatEngine {
+  queryEngine: BaseQueryEngine;
+  memory: BaseMemory;
   llm: LLM;
   condenseMessagePrompt: CondenseQuestionPrompt;
 
+  get chatHistory() {
+    return this.memory.getMessages();
+  }
+
   constructor(init: {
-    queryEngine: QueryEngine;
+    queryEngine: BaseQueryEngine;
     chatHistory: ChatMessage[];
-    serviceContext?: ServiceContext;
     condenseMessagePrompt?: CondenseQuestionPrompt;
   }) {
     super();
 
     this.queryEngine = init.queryEngine;
-    this.chatHistory = getHistory(init?.chatHistory);
-    this.llm = llmFromSettingsOrContext(init?.serviceContext);
+    this.memory = new ChatMemoryBuffer({
+      chatHistory: init?.chatHistory,
+    });
+    this.llm = Settings.llm;
     this.condenseMessagePrompt =
       init?.condenseMessagePrompt ?? defaultCondenseQuestionPrompt;
   }
@@ -76,10 +74,8 @@ export class CondenseQuestionChatEngine
     }
   }
 
-  private async condenseQuestion(chatHistory: ChatHistory, question: string) {
-    const chatHistoryStr = messagesToHistory(
-      await chatHistory.requestMessages(),
-    );
+  private async condenseQuestion(chatHistory: BaseMemory, question: string) {
+    const chatHistoryStr = messagesToHistory(await chatHistory.getMessages());
 
     return this.llm.complete({
       prompt: this.condenseMessagePrompt.format({
@@ -89,23 +85,28 @@ export class CondenseQuestionChatEngine
     });
   }
 
+  chat(params: NonStreamingChatEngineParams): Promise<EngineResponse>;
   chat(
-    params: ChatEngineParamsStreaming,
+    params: StreamingChatEngineParams,
   ): Promise<AsyncIterable<EngineResponse>>;
-  chat(params: ChatEngineParamsNonStreaming): Promise<EngineResponse>;
   @wrapEventCaller
   async chat(
-    params: ChatEngineParamsStreaming | ChatEngineParamsNonStreaming,
+    params: NonStreamingChatEngineParams | StreamingChatEngineParams,
   ): Promise<EngineResponse | AsyncIterable<EngineResponse>> {
     const { message, stream } = params;
     const chatHistory = params.chatHistory
-      ? getHistory(params.chatHistory)
-      : this.chatHistory;
+      ? new ChatMemoryBuffer({
+          chatHistory:
+            params.chatHistory instanceof BaseMemory
+              ? await params.chatHistory.getMessages()
+              : params.chatHistory,
+        })
+      : this.memory;
 
     const condensedQuestion = (
       await this.condenseQuestion(chatHistory, extractText(message))
     ).text;
-    chatHistory.addMessage({ content: message, role: "user" });
+    chatHistory.put({ content: message, role: "user" });
 
     if (stream) {
       const stream = await this.queryEngine.query({
@@ -118,14 +119,14 @@ export class CondenseQuestionChatEngine
         reducer: (accumulator, part) =>
           (accumulator += extractText(part.message.content)),
         finished: (accumulator) => {
-          chatHistory.addMessage({ content: accumulator, role: "assistant" });
+          chatHistory.put({ content: accumulator, role: "assistant" });
         },
       });
     }
     const response = await this.queryEngine.query({
       query: condensedQuestion,
     });
-    chatHistory.addMessage({
+    chatHistory.put({
       content: response.message.content,
       role: "assistant",
     });
@@ -134,6 +135,6 @@ export class CondenseQuestionChatEngine
   }
 
   reset() {
-    this.chatHistory.reset();
+    this.memory.reset();
   }
 }

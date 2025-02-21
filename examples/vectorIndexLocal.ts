@@ -1,12 +1,8 @@
 import fs from "node:fs/promises";
 
-import {
-  Document,
-  HuggingFaceEmbedding,
-  Ollama,
-  Settings,
-  VectorStoreIndex,
-} from "llamaindex";
+import { HuggingFaceEmbedding } from "@llamaindex/huggingface";
+import { Ollama } from "@llamaindex/ollama";
+import { Document, Settings, VectorStoreIndex } from "llamaindex";
 
 Settings.llm = new Ollama({
   model: "mixtral:8x7b",
@@ -14,7 +10,6 @@ Settings.llm = new Ollama({
 
 Settings.embedModel = new HuggingFaceEmbedding({
   modelType: "BAAI/bge-small-en-v1.5",
-  quantized: false,
 });
 
 async function main() {

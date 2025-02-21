@@ -1,0 +1,16 @@
+{
+  "title": "LlamaIndex",
+  "description": "The Data framework for LLM",
+  "root": true,
+  "pages": [
+    "---Guide---",
+    "what-is-llamaindex",
+    "index",
+    "getting_started",
+    "migration",
+    "guide",
+    "examples",
+    "modules",
+    "integration"
+  ]
+}

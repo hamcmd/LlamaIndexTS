@@ -1,18 +1,17 @@
+import { OpenAI } from "@llamaindex/openai";
+import { CSVReader } from "@llamaindex/readers/csv";
 import {
-  CompactAndRefine,
-  OpenAI,
+  getResponseSynthesizer,
   PromptTemplate,
-  ResponseSynthesizer,
   Settings,
   VectorStoreIndex,
 } from "llamaindex";
-import { PapaCSVReader } from "llamaindex/readers/CSVReader";
 
 Settings.llm = new OpenAI({ model: "gpt-4" });
 
 async function main() {
   // Load CSV
-  const reader = new PapaCSVReader();
+  const reader = new CSVReader();
   const path = "../data/titanic_train.csv";
   const documents = await reader.loadData(path);
 
@@ -29,8 +28,8 @@ Given the CSV file, generate me Typescript code to answer the question: {query}.
 `,
   });
 
-  const responseSynthesizer = new ResponseSynthesizer({
-    responseBuilder: new CompactAndRefine(undefined, csvPrompt),
+  const responseSynthesizer = getResponseSynthesizer("compact", {
+    textQATemplate: csvPrompt,
   });
 
   const queryEngine = index.asQueryEngine({ responseSynthesizer });

@@ -1,5 +1,6 @@
 import { createSHA256, path, randomUUID } from "@llamaindex/env";
-import { chunkSizeCheck, lazyInitHash } from "../decorator";
+import { lazyInitHash } from "../decorator";
+import { chunkSizeCheck } from "./utils/chunk-size-check";
 
 export enum NodeRelationship {
   SOURCE = "SOURCE",
@@ -24,6 +25,7 @@ export enum MetadataMode {
   NONE = "NONE",
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Metadata = Record<string, any>;
 
 export interface RelatedNodeInfo<T extends Metadata = Metadata> {
@@ -175,6 +177,7 @@ export abstract class BaseNode<T extends Metadata = Metadata> {
    * Properties are read-only as they are not deep-cloned (not necessary for stringification).
    * @see toMutableJSON - use to return a mutable JSON instead
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): Record<string, any> {
     return {
       ...this,
@@ -193,6 +196,7 @@ export abstract class BaseNode<T extends Metadata = Metadata> {
    * Properties can be safely modified as a deep clone of the properties are created.
    * @return {Record<string, any>} - The JSON representation of the object.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toMutableJSON(): Record<string, any> {
     return structuredClone(this.toJSON());
   }
@@ -327,6 +331,7 @@ export class Document<T extends Metadata = Metadata> extends TextNode<T> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function jsonToNode(json: any, type?: ObjectType) {
   if (!json.type && !type) {
     throw new Error("Node type not found");
@@ -437,9 +442,16 @@ export function splitNodesByType(nodes: BaseNode[]): NodesByType {
 
   for (const node of nodes) {
     let type: ModalityType;
-    if (node instanceof ImageNode) {
+    if (
+      node.type === ObjectType.IMAGE ||
+      node.type === ObjectType.IMAGE_DOCUMENT
+    ) {
       type = ModalityType.IMAGE;
-    } else if (node instanceof TextNode) {
+    } else if (
+      node.type === ObjectType.TEXT ||
+      node.type === ObjectType.DOCUMENT ||
+      node.type === ObjectType.INDEX
+    ) {
       type = ModalityType.TEXT;
     } else {
       throw new Error(`Unknown node type: ${node.type}`);
@@ -458,35 +470,43 @@ export function buildNodeFromSplits(
   doc: BaseNode,
   refDoc: BaseNode = doc,
   idGenerator: (idx: number, refDoc: BaseNode) => string = () => randomUUID(),
-) {
+): TextNode[] {
   const nodes: TextNode[] = [];
   const relationships = {
     [NodeRelationship.SOURCE]: refDoc.asRelatedNodeInfo(),
   };
 
   textSplits.forEach((textChunk, i) => {
-    if (doc instanceof ImageDocument) {
+    if (
+      doc.type === ObjectType.IMAGE ||
+      doc.type === ObjectType.IMAGE_DOCUMENT
+    ) {
+      const imageDoc = doc as ImageNode;
       const imageNode = new ImageNode({
-        id_: idGenerator(i, doc),
+        id_: idGenerator(i, imageDoc),
         text: textChunk,
-        image: doc.image,
-        embedding: doc.embedding,
-        excludedEmbedMetadataKeys: [...doc.excludedEmbedMetadataKeys],
-        excludedLlmMetadataKeys: [...doc.excludedLlmMetadataKeys],
-        metadataSeparator: doc.metadataSeparator,
-        textTemplate: doc.textTemplate,
+        image: imageDoc.image,
+        embedding: imageDoc.embedding,
+        excludedEmbedMetadataKeys: [...imageDoc.excludedEmbedMetadataKeys],
+        excludedLlmMetadataKeys: [...imageDoc.excludedLlmMetadataKeys],
+        metadataSeparator: imageDoc.metadataSeparator,
+        textTemplate: imageDoc.textTemplate,
         relationships: { ...relationships },
       });
       nodes.push(imageNode);
-    } else if (doc instanceof Document || doc instanceof TextNode) {
+    } else if (
+      doc.type === ObjectType.DOCUMENT ||
+      doc.type === ObjectType.TEXT
+    ) {
+      const textDoc = doc as TextNode;
       const node = new TextNode({
-        id_: idGenerator(i, doc),
+        id_: idGenerator(i, textDoc),
         text: textChunk,
-        embedding: doc.embedding,
-        excludedEmbedMetadataKeys: [...doc.excludedEmbedMetadataKeys],
-        excludedLlmMetadataKeys: [...doc.excludedLlmMetadataKeys],
-        metadataSeparator: doc.metadataSeparator,
-        textTemplate: doc.textTemplate,
+        embedding: textDoc.embedding,
+        excludedEmbedMetadataKeys: [...textDoc.excludedEmbedMetadataKeys],
+        excludedLlmMetadataKeys: [...textDoc.excludedLlmMetadataKeys],
+        metadataSeparator: textDoc.metadataSeparator,
+        textTemplate: textDoc.textTemplate,
         relationships: { ...relationships },
       });
       nodes.push(node);

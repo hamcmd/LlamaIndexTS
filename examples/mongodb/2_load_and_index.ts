@@ -1,11 +1,7 @@
-/* eslint-disable turbo/no-undeclared-env-vars */
+import { MongoDBAtlasVectorSearch } from "@llamaindex/mongodb";
+import { SimpleMongoReader } from "@llamaindex/readers/mongo";
 import * as dotenv from "dotenv";
-import {
-  MongoDBAtlasVectorSearch,
-  SimpleMongoReader,
-  storageContextFromDefaults,
-  VectorStoreIndex,
-} from "llamaindex";
+import { storageContextFromDefaults, VectorStoreIndex } from "llamaindex";
 import { MongoClient } from "mongodb";
 
 // Load environment variables from local .env file

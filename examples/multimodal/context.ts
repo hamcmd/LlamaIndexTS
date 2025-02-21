@@ -1,9 +1,10 @@
 // call pnpm tsx multimodal/load.ts first to init the storage
+import { OpenAI } from "@llamaindex/openai";
 import {
   ContextChatEngine,
+  extractText,
   NodeWithScore,
   ObjectType,
-  OpenAI,
   Settings,
   VectorStoreIndex,
 } from "llamaindex";
@@ -25,8 +26,9 @@ Settings.callbackManager.on("retrieve-end", (event) => {
   const textNodes = nodes.filter(
     (node: NodeWithScore) => node.node.type === ObjectType.TEXT,
   );
+  const text = extractText(query);
   console.log(
-    `Retrieved ${textNodes.length} text nodes and ${imageNodes.length} image nodes for query: ${query}`,
+    `Retrieved ${textNodes.length} text nodes and ${imageNodes.length} image nodes for query: ${text}`,
   );
 });
 

@@ -1,37 +1,35 @@
+import { IndexList, IndexStructType } from "@llamaindex/core/data-structs";
+import type { BaseNodePostprocessor } from "@llamaindex/core/postprocessor";
 import {
   type ChoiceSelectPrompt,
   defaultChoiceSelectPrompt,
 } from "@llamaindex/core/prompts";
+import type { QueryBundle } from "@llamaindex/core/query-engine";
+import type { BaseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import { getResponseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import { BaseRetriever } from "@llamaindex/core/retriever";
 import type {
   BaseNode,
   Document,
   NodeWithScore,
 } from "@llamaindex/core/schema";
-import { extractText, wrapEventCaller } from "@llamaindex/core/utils";
-import _ from "lodash";
-import type { BaseRetriever, RetrieveParams } from "../../Retriever.js";
-import type { ServiceContext } from "../../ServiceContext.js";
-import {
-  llmFromSettingsOrContext,
-  nodeParserFromSettingsOrContext,
-} from "../../Settings.js";
-import { RetrieverQueryEngine } from "../../engines/query/index.js";
-import type { BaseNodePostprocessor } from "../../postprocessors/index.js";
-import type { StorageContext } from "../../storage/StorageContext.js";
-import { storageContextFromDefaults } from "../../storage/StorageContext.js";
 import type {
   BaseDocumentStore,
   RefDocInfo,
-} from "../../storage/docStore/types.js";
-import type { BaseSynthesizer } from "../../synthesizers/index.js";
-import {
-  CompactAndRefine,
-  ResponseSynthesizer,
-} from "../../synthesizers/index.js";
-import type { QueryEngine } from "../../types.js";
+} from "@llamaindex/core/storage/doc-store";
+import { extractText } from "@llamaindex/core/utils";
+import _ from "lodash";
+import { Settings } from "../../Settings.js";
+import type {
+  BaseChatEngine,
+  ContextChatEngineOptions,
+} from "../../engines/chat/index.js";
+import { ContextChatEngine } from "../../engines/chat/index.js";
+import { RetrieverQueryEngine } from "../../engines/query/index.js";
+import type { StorageContext } from "../../storage/StorageContext.js";
+import { storageContextFromDefaults } from "../../storage/StorageContext.js";
 import type { BaseIndexInit } from "../BaseIndex.js";
 import { BaseIndex } from "../BaseIndex.js";
-import { IndexList, IndexStructType } from "../json-to-index-struct.js";
 import type {
   ChoiceSelectParserFunction,
   NodeFormatterFunction,
@@ -47,11 +45,15 @@ export enum SummaryRetrieverMode {
   LLM = "llm",
 }
 
+export type SummaryIndexChatEngineOptions = {
+  retriever?: BaseRetriever;
+  mode?: SummaryRetrieverMode;
+} & Omit<ContextChatEngineOptions, "retriever">;
+
 export interface SummaryIndexOptions {
   nodes?: BaseNode[] | undefined;
   indexStruct?: IndexList | undefined;
   indexId?: string | undefined;
-  serviceContext?: ServiceContext | undefined;
   storageContext?: StorageContext | undefined;
 }
 
@@ -66,7 +68,6 @@ export class SummaryIndex extends BaseIndex<IndexList> {
   static async init(options: SummaryIndexOptions): Promise<SummaryIndex> {
     const storageContext =
       options.storageContext ?? (await storageContextFromDefaults({}));
-    const serviceContext = options.serviceContext;
     const { docStore, indexStore } = storageContext;
 
     // Setup IndexStruct from storage
@@ -123,7 +124,6 @@ export class SummaryIndex extends BaseIndex<IndexList> {
 
     return new SummaryIndex({
       storageContext,
-      serviceContext,
       docStore,
       indexStore,
       indexStruct,
@@ -134,12 +134,10 @@ export class SummaryIndex extends BaseIndex<IndexList> {
     documents: Document[],
     args: {
       storageContext?: StorageContext | undefined;
-      serviceContext?: ServiceContext | undefined;
     } = {},
   ): Promise<SummaryIndex> {
-    let { storageContext, serviceContext } = args;
+    let { storageContext } = args;
     storageContext = storageContext ?? (await storageContextFromDefaults({}));
-    serviceContext = serviceContext;
     const docStore = storageContext.docStore;
 
     await docStore.addDocuments(documents, true);
@@ -147,15 +145,11 @@ export class SummaryIndex extends BaseIndex<IndexList> {
       await docStore.setDocumentHash(doc.id_, doc.hash);
     }
 
-    const nodes =
-      nodeParserFromSettingsOrContext(serviceContext).getNodesFromDocuments(
-        documents,
-      );
+    const nodes = Settings.nodeParser.getNodesFromDocuments(documents);
 
     const index = await SummaryIndex.init({
       nodes,
       storageContext,
-      serviceContext,
     });
     return index;
   }
@@ -178,7 +172,7 @@ export class SummaryIndex extends BaseIndex<IndexList> {
     responseSynthesizer?: BaseSynthesizer;
     preFilters?: unknown;
     nodePostprocessors?: BaseNodePostprocessor[];
-  }): QueryEngine & RetrieverQueryEngine {
+  }): RetrieverQueryEngine {
     let { retriever, responseSynthesizer } = options ?? {};
 
     if (!retriever) {
@@ -186,19 +180,24 @@ export class SummaryIndex extends BaseIndex<IndexList> {
     }
 
     if (!responseSynthesizer) {
-      const responseBuilder = new CompactAndRefine(this.serviceContext);
-      responseSynthesizer = new ResponseSynthesizer({
-        serviceContext: this.serviceContext,
-        responseBuilder,
-      });
+      responseSynthesizer = getResponseSynthesizer("compact");
     }
 
     return new RetrieverQueryEngine(
       retriever,
       responseSynthesizer,
-      options?.preFilters,
       options?.nodePostprocessors,
     );
+  }
+
+  asChatEngine(options?: SummaryIndexChatEngineOptions): BaseChatEngine {
+    const { retriever, mode, ...contextChatEngineOptions } = options ?? {};
+    return new ContextChatEngine({
+      retriever:
+        retriever ??
+        this.asRetriever({ mode: mode ?? SummaryRetrieverMode.DEFAULT }),
+      ...contextChatEngineOptions,
+    });
   }
 
   static async buildIndexFromNodes(
@@ -287,15 +286,15 @@ export type ListRetrieverMode = SummaryRetrieverMode;
 /**
  * Simple retriever for SummaryIndex that returns all nodes
  */
-export class SummaryIndexRetriever implements BaseRetriever {
+export class SummaryIndexRetriever extends BaseRetriever {
   index: SummaryIndex;
 
   constructor(index: SummaryIndex) {
+    super();
     this.index = index;
   }
 
-  @wrapEventCaller
-  async retrieve({ query }: RetrieveParams): Promise<NodeWithScore[]> {
+  async _retrieve(queryBundle: QueryBundle): Promise<NodeWithScore[]> {
     const nodeIds = this.index.indexStruct.nodes;
     const nodes = await this.index.docStore.getNodes(nodeIds);
     return nodes.map((node) => ({
@@ -308,33 +307,30 @@ export class SummaryIndexRetriever implements BaseRetriever {
 /**
  * LLM retriever for SummaryIndex which lets you select the most relevant chunks.
  */
-export class SummaryIndexLLMRetriever implements BaseRetriever {
+export class SummaryIndexLLMRetriever extends BaseRetriever {
   index: SummaryIndex;
   choiceSelectPrompt: ChoiceSelectPrompt;
   choiceBatchSize: number;
   formatNodeBatchFn: NodeFormatterFunction;
   parseChoiceSelectAnswerFn: ChoiceSelectParserFunction;
-  serviceContext?: ServiceContext | undefined;
 
-  // eslint-disable-next-line max-params
   constructor(
     index: SummaryIndex,
     choiceSelectPrompt?: ChoiceSelectPrompt,
     choiceBatchSize: number = 10,
     formatNodeBatchFn?: NodeFormatterFunction,
     parseChoiceSelectAnswerFn?: ChoiceSelectParserFunction,
-    serviceContext?: ServiceContext,
   ) {
+    super();
     this.index = index;
     this.choiceSelectPrompt = choiceSelectPrompt || defaultChoiceSelectPrompt;
     this.choiceBatchSize = choiceBatchSize;
     this.formatNodeBatchFn = formatNodeBatchFn || defaultFormatNodeBatchFn;
     this.parseChoiceSelectAnswerFn =
       parseChoiceSelectAnswerFn || defaultParseChoiceSelectAnswerFn;
-    this.serviceContext = serviceContext || index.serviceContext;
   }
 
-  async retrieve({ query }: RetrieveParams): Promise<NodeWithScore[]> {
+  async _retrieve(query: QueryBundle): Promise<NodeWithScore[]> {
     const nodeIds = this.index.indexStruct.nodes;
     const results: NodeWithScore[] = [];
 
@@ -345,7 +341,7 @@ export class SummaryIndexLLMRetriever implements BaseRetriever {
       const fmtBatchStr = this.formatNodeBatchFn(nodesBatch);
       const input = { context: fmtBatchStr, query: extractText(query) };
 
-      const llm = llmFromSettingsOrContext(this.serviceContext);
+      const llm = Settings.llm;
 
       const rawResponse = (
         await llm.complete({

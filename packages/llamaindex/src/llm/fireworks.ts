@@ -1,8 +1,8 @@
 import { getEnv } from "@llamaindex/env";
-import { OpenAI } from "./openai.js";
+import { OpenAI } from "@llamaindex/openai";
 
 export class FireworksLLM extends OpenAI {
-  constructor(init?: Partial<OpenAI>) {
+  constructor(init?: Omit<Partial<OpenAI>, "session">) {
     const {
       apiKey = getEnv("FIREWORKS_API_KEY"),
       additionalSessionOptions = {},

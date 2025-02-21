@@ -1,6 +1,7 @@
+import { OpenAI } from "@llamaindex/openai";
 import {
-  MultiModalResponseSynthesizer,
-  OpenAI,
+  extractText,
+  getResponseSynthesizer,
   Settings,
   VectorStoreIndex,
 } from "llamaindex";
@@ -16,7 +17,8 @@ Settings.llm = new OpenAI({ model: "gpt-4-turbo", maxTokens: 512 });
 // Update callbackManager
 Settings.callbackManager.on("retrieve-end", (event) => {
   const { nodes, query } = event.detail;
-  console.log(`Retrieved ${nodes.length} nodes for query: ${query}`);
+  const text = extractText(query);
+  console.log(`Retrieved ${nodes.length} nodes for query: ${text}`);
 });
 
 async function main() {
@@ -27,7 +29,7 @@ async function main() {
   });
 
   const queryEngine = index.asQueryEngine({
-    responseSynthesizer: new MultiModalResponseSynthesizer(),
+    responseSynthesizer: getResponseSynthesizer("multi_modal"),
     retriever: index.asRetriever({ topK: { TEXT: 3, IMAGE: 1 } }),
   });
   const stream = await queryEngine.query({

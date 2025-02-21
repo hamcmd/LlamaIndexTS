@@ -2,9 +2,9 @@
   "name": "@llamaindex/monorepo",
   "private": true,
   "scripts": {
-    "build": "turbo run build --filter=\"!docs\" --filter=\"!*-test\" --filter=\"!*-example\"",
-    "build:release": "turbo run build lint test --filter=\"!docs\" --filter=\"!*-test\" --filter=\"!*-example\"",
-    "dev": "turbo run dev",
+    "clean": "find . -type d \\( -name .turbo -o -name node_modules -o -name dist -o -name .next -o -name lib \\) -exec rm -rf {} +",
+    "build": "turbo run build --filter=\"./packages/*\" --filter=\"./packages/providers/**\"",
+    "dev": "turbo run dev --filter=\"./packages/*\" --filter=\"./packages/providers/**\"",
     "format": "prettier --ignore-unknown --cache --check .",
     "format:write": "prettier --ignore-unknown --write .",
     "lint": "turbo run lint",
@@ -12,38 +12,41 @@
     "e2e": "turbo run e2e",
     "test": "turbo run test",
     "type-check": "tsc -b --diagnostics",
-    "release": "pnpm run build:release && changeset publish",
-    "release-snapshot": "pnpm run build:release && changeset publish --tag snapshot",
-    "new-version": "changeset version && pnpm format:write && pnpm run build:release",
-    "new-snapshot": "pnpm run build:release && changeset version --snapshot"
+    "circular-check": "madge --circular ./packages/**/**/dist/index.js",
+    "release": "pnpm run build && changeset publish",
+    "release-snapshot": "pnpm run build && changeset publish --tag snapshot",
+    "new-version": "changeset version && pnpm format:write && pnpm run build",
+    "new-snapshot": "pnpm run build && changeset version --snapshot",
+    "lint-staged": "lint-staged"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
-    "@typescript-eslint/eslint-plugin": "^8.3.0",
-    "eslint": "8.57.0",
-    "eslint-config-next": "^14.2.7",
+    "eslint": "9.16.0",
+    "eslint-config-next": "^15.1.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-config-turbo": "^2.1.0",
-    "eslint-plugin-react": "7.35.0",
-    "husky": "^9.1.5",
-    "lint-staged": "^15.2.9",
+    "eslint-config-turbo": "^2.3.3",
+    "eslint-plugin-react": "7.37.2",
+    "globals": "^15.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
     "madge": "^8.0.0",
-    "prettier": "^3.3.3",
-    "prettier-plugin-organize-imports": "^4.0.0",
-    "turbo": "^2.1.0",
-    "typescript": "^5.5.4"
+    "prettier": "^3.4.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
   },
-  "packageManager": "pnpm@9.5.0",
-  "pnpm": {
-    "overrides": {
-      "trim": "1.0.1",
-      "protobufjs": "7.2.6"
-    },
-    "patchedDependencies": {
-      "python-format-js@1.4.3": "patches/python-format-js@1.4.3.patch"
-    }
-  },
+  "packageManager": "pnpm@9.12.3",
   "lint-staged": {
-    "(!apps/docs/i18n/**/docusaurus-plugin-content-docs/current/api/*).{js,jsx,ts,tsx,md}": "prettier --write"
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --check",
+      "eslint"
+    ],
+    "*.{json,md}": "prettier --check"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "bunchee@6.3.4": "patches/bunchee@6.3.4.patch"
+    }
   }
 }

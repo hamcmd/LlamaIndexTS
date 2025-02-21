@@ -1,4 +1,5 @@
-import { Settings, SimpleDirectoryReader, VectorStoreIndex } from "llamaindex";
+import { SimpleDirectoryReader } from "@llamaindex/readers/directory";
+import { Settings, VectorStoreIndex } from "llamaindex";
 import path from "path";
 import { getStorageContext } from "./storage";
 
@@ -6,6 +7,7 @@ import { getStorageContext } from "./storage";
 Settings.chunkSize = 512;
 Settings.chunkOverlap = 20;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getRuntime(func: any) {
   const start = Date.now();
   await func();

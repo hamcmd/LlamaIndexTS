@@ -1,29 +1,21 @@
-import {
-  EngineResponse,
-  TextNode,
-  type NodeWithScore,
-} from "@llamaindex/core/schema";
+import type { BaseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import { getResponseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import { TextNode, type NodeWithScore } from "@llamaindex/core/schema";
 import { LLMQuestionGenerator } from "../../QuestionGenerator.js";
-import type { ServiceContext } from "../../ServiceContext.js";
-import type { BaseSynthesizer } from "../../synthesizers/index.js";
-import {
-  CompactAndRefine,
-  ResponseSynthesizer,
-} from "../../synthesizers/index.js";
 
 import type { BaseTool, ToolMetadata } from "@llamaindex/core/llms";
-import { PromptMixin, type PromptsRecord } from "@llamaindex/core/prompts";
-import type { BaseQueryEngine, QueryType } from "@llamaindex/core/query-engine";
-import { wrapEventCaller } from "@llamaindex/core/utils";
+import type { PromptsRecord } from "@llamaindex/core/prompts";
+import {
+  BaseQueryEngine,
+  type QueryBundle,
+  type QueryType,
+} from "@llamaindex/core/query-engine";
 import type { BaseQuestionGenerator, SubQuestion } from "./types.js";
 
 /**
  * SubQuestionQueryEngine decomposes a question into subquestions and then
  */
-export class SubQuestionQueryEngine
-  extends PromptMixin
-  implements BaseQueryEngine
-{
+export class SubQuestionQueryEngine extends BaseQueryEngine {
   responseSynthesizer: BaseSynthesizer;
   questionGen: BaseQuestionGenerator;
   queryEngines: BaseTool[];
@@ -38,9 +30,48 @@ export class SubQuestionQueryEngine
 
     this.questionGen = init.questionGen;
     this.responseSynthesizer =
-      init.responseSynthesizer ?? new ResponseSynthesizer();
+      init.responseSynthesizer ?? getResponseSynthesizer("compact");
     this.queryEngines = init.queryEngineTools;
     this.metadatas = init.queryEngineTools.map((tool) => tool.metadata);
+  }
+
+  override async _query(strOrQueryBundle: QueryType, stream?: boolean) {
+    let query: QueryBundle;
+    if (typeof strOrQueryBundle === "string") {
+      query = {
+        query: strOrQueryBundle,
+      };
+    } else {
+      query = strOrQueryBundle;
+    }
+    const subQuestions = await this.questionGen.generate(
+      this.metadatas,
+      strOrQueryBundle,
+    );
+
+    const subQNodes = await Promise.all(
+      subQuestions.map((subQ) => this.querySubQ(subQ)),
+    );
+
+    const nodesWithScore: NodeWithScore[] = subQNodes.filter(
+      (node) => node !== null,
+    );
+    if (stream) {
+      return this.responseSynthesizer.synthesize(
+        {
+          query,
+          nodes: nodesWithScore,
+        },
+        true,
+      );
+    }
+    return this.responseSynthesizer.synthesize(
+      {
+        query,
+        nodes: nodesWithScore,
+      },
+      false,
+    );
   }
 
   protected _getPrompts(): PromptsRecord {
@@ -49,6 +80,7 @@ export class SubQuestionQueryEngine
 
   protected _updatePrompts() {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _getPromptModules(): Record<string, any> {
     return {
       questionGen: this.questionGen,
@@ -60,57 +92,16 @@ export class SubQuestionQueryEngine
     queryEngineTools: BaseTool[];
     questionGen?: BaseQuestionGenerator;
     responseSynthesizer?: BaseSynthesizer;
-    serviceContext?: ServiceContext;
   }) {
-    const serviceContext = init.serviceContext;
-
     const questionGen = init.questionGen ?? new LLMQuestionGenerator();
     const responseSynthesizer =
-      init.responseSynthesizer ??
-      new ResponseSynthesizer({
-        responseBuilder: new CompactAndRefine(serviceContext),
-        serviceContext,
-      });
+      init.responseSynthesizer ?? getResponseSynthesizer("compact");
 
     return new SubQuestionQueryEngine({
       questionGen,
       responseSynthesizer,
       queryEngineTools: init.queryEngineTools,
     });
-  }
-
-  query(query: QueryType, stream: true): Promise<AsyncIterable<EngineResponse>>;
-  query(query: QueryType, stream?: false): Promise<EngineResponse>;
-  @wrapEventCaller
-  async query(
-    query: QueryType,
-    stream?: boolean,
-  ): Promise<EngineResponse | AsyncIterable<EngineResponse>> {
-    const subQuestions = await this.questionGen.generate(this.metadatas, query);
-
-    const subQNodes = await Promise.all(
-      subQuestions.map((subQ) => this.querySubQ(subQ)),
-    );
-
-    const nodesWithScore = subQNodes
-      .filter((node) => node !== null)
-      .map((node) => node as NodeWithScore);
-    if (stream) {
-      return this.responseSynthesizer.synthesize(
-        {
-          query,
-          nodesWithScore,
-        },
-        true,
-      );
-    }
-    return this.responseSynthesizer.synthesize(
-      {
-        query,
-        nodesWithScore,
-      },
-      false,
-    );
   }
 
   private async querySubQ(subQ: SubQuestion): Promise<NodeWithScore | null> {

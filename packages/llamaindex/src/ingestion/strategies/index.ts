@@ -1,9 +1,9 @@
-import { TransformComponent } from "@llamaindex/core/schema";
-import type { BaseDocumentStore } from "../../storage/docStore/types.js";
-import type { VectorStore } from "../../vector-store/types.js";
+import type { BaseDocumentStore } from "@llamaindex/core/storage/doc-store";
+import type { BaseVectorStore } from "@llamaindex/core/vector-store";
 import { DuplicatesStrategy } from "./DuplicatesStrategy.js";
 import { UpsertsAndDeleteStrategy } from "./UpsertsAndDeleteStrategy.js";
 import { UpsertsStrategy } from "./UpsertsStrategy.js";
+import { RollbackableTransformComponent } from "./rollback.js";
 
 /**
  * Document de-deduplication strategies work by comparing the hashes or ids stored in the document store.
@@ -19,7 +19,7 @@ export enum DocStoreStrategy {
   NONE = "none", // no-op strategy
 }
 
-class NoOpStrategy extends TransformComponent {
+class NoOpStrategy extends RollbackableTransformComponent {
   constructor() {
     super(async (nodes) => nodes);
   }
@@ -28,8 +28,8 @@ class NoOpStrategy extends TransformComponent {
 export function createDocStoreStrategy(
   docStoreStrategy: DocStoreStrategy,
   docStore?: BaseDocumentStore,
-  vectorStores: VectorStore[] = [],
-): TransformComponent {
+  vectorStores: BaseVectorStore[] = [],
+): RollbackableTransformComponent {
   if (docStoreStrategy === DocStoreStrategy.NONE) {
     return new NoOpStrategy();
   }

@@ -1,8 +1,6 @@
-import {
-  LlamaParseReader,
-  SimpleDirectoryReader,
-  VectorStoreIndex,
-} from "llamaindex";
+import { LlamaParseReader } from "@llamaindex/cloud";
+import { SimpleDirectoryReader } from "@llamaindex/readers/directory";
+import { VectorStoreIndex } from "llamaindex";
 
 async function main() {
   const reader = new SimpleDirectoryReader();

@@ -1,4 +1,4 @@
-import { type Tokenizers } from "@llamaindex/env";
+import type { Tokenizers } from "@llamaindex/env/tokenizers";
 import type { MessageContentDetail } from "../llms";
 import { BaseNode, MetadataMode, TransformComponent } from "../schema";
 import { extractSingleText } from "../utils";
@@ -19,27 +19,40 @@ export type BaseEmbeddingOptions = {
   logProgress?: boolean;
 };
 
-export abstract class BaseEmbedding extends TransformComponent {
+export abstract class BaseEmbedding extends TransformComponent<
+  Promise<BaseNode[]>
+> {
   embedBatchSize = DEFAULT_EMBED_BATCH_SIZE;
   embedInfo?: EmbeddingInfo;
 
-  constructor() {
-    super(
-      async (
-        nodes: BaseNode[],
-        options?: BaseEmbeddingOptions,
-      ): Promise<BaseNode[]> => {
-        const texts = nodes.map((node) => node.getContent(MetadataMode.EMBED));
+  protected constructor(
+    transformFn?: (
+      nodes: BaseNode[],
+      options?: BaseEmbeddingOptions,
+    ) => Promise<BaseNode[]>,
+  ) {
+    if (transformFn) {
+      super(transformFn);
+    } else {
+      super(
+        async (
+          nodes: BaseNode[],
+          options?: BaseEmbeddingOptions,
+        ): Promise<BaseNode[]> => {
+          const texts = nodes.map((node) =>
+            node.getContent(MetadataMode.EMBED),
+          );
 
-        const embeddings = await this.getTextEmbeddingsBatch(texts, options);
+          const embeddings = await this.getTextEmbeddingsBatch(texts, options);
 
-        for (let i = 0; i < nodes.length; i++) {
-          nodes[i]!.embedding = embeddings[i];
-        }
+          for (let i = 0; i < nodes.length; i++) {
+            nodes[i]!.embedding = embeddings[i];
+          }
 
-        return nodes;
-      },
-    );
+          return nodes;
+        },
+      );
+    }
   }
 
   similarity(

@@ -1,23 +1,25 @@
 import {
+  type MetadataFilter,
   type MetadataFilters,
-  PipelinesService,
   type RetrievalParams,
+  runSearchApiV1PipelinesPipelineIdRetrievePost,
   type TextNodeWithScore,
 } from "@llamaindex/cloud/api";
-import { DEFAULT_PROJECT_NAME, Settings } from "@llamaindex/core/global";
+import { DEFAULT_PROJECT_NAME } from "@llamaindex/core/global";
+import type { QueryBundle } from "@llamaindex/core/query-engine";
+import { BaseRetriever } from "@llamaindex/core/retriever";
 import type { NodeWithScore } from "@llamaindex/core/schema";
 import { jsonToNode, ObjectType } from "@llamaindex/core/schema";
-import { extractText, wrapEventCaller } from "@llamaindex/core/utils";
-import type { BaseRetriever, RetrieveParams } from "../Retriever.js";
+import { extractText } from "@llamaindex/core/utils";
 import type { ClientParams, CloudConstructorParams } from "./type.js";
-import { getProjectId, initService } from "./utils.js";
+import { getPipelineId, initService } from "./utils.js";
 
 export type CloudRetrieveParams = Omit<
   RetrievalParams,
   "query" | "search_filters" | "dense_similarity_top_k"
 > & { similarityTopK?: number; filters?: MetadataFilters };
 
-export class LlamaCloudRetriever implements BaseRetriever {
+export class LlamaCloudRetriever extends BaseRetriever {
   clientParams: ClientParams;
   retrieveParams: CloudRetrieveParams;
   organizationId?: string;
@@ -36,12 +38,31 @@ export class LlamaCloudRetriever implements BaseRetriever {
       return {
         // Currently LlamaCloud only supports text nodes
         node: textNode,
-        score: node.score,
+        score: node.score ?? undefined,
       };
     });
   }
 
+  // LlamaCloud expects null values for filters, but LlamaIndexTS uses undefined for empty values
+  // This function converts the undefined values to null
+  private convertFilter(filters?: MetadataFilters): MetadataFilters | null {
+    if (!filters) return null;
+
+    const processFilter = (
+      filter: MetadataFilter | MetadataFilters,
+    ): MetadataFilter | MetadataFilters => {
+      if ("filters" in filter) {
+        // type MetadataFilters
+        return { ...filter, filters: filter.filters.map(processFilter) };
+      }
+      return { ...filter, value: filter.value ?? null };
+    };
+
+    return { ...filters, filters: filters.filters.map(processFilter) };
+  }
+
   constructor(params: CloudConstructorParams & CloudRetrieveParams) {
+    super();
     this.clientParams = { apiKey: params.apiKey, baseUrl: params.baseUrl };
     initService(this.clientParams);
     this.retrieveParams = params;
@@ -54,62 +75,29 @@ export class LlamaCloudRetriever implements BaseRetriever {
     }
   }
 
-  @wrapEventCaller
-  async retrieve({
-    query,
-    preFilters,
-  }: RetrieveParams): Promise<NodeWithScore[]> {
-    const { data: pipelines } =
-      await PipelinesService.searchPipelinesApiV1PipelinesGet({
-        query: {
-          project_id: await getProjectId(this.projectName, this.organizationId),
-          project_name: this.pipelineName,
-        },
-        throwOnError: true,
-      });
+  async _retrieve(query: QueryBundle): Promise<NodeWithScore[]> {
+    const pipelineId = await getPipelineId(
+      this.pipelineName,
+      this.projectName,
+      this.organizationId,
+    );
 
-    if (pipelines.length === 0 || !pipelines[0]!.id) {
-      throw new Error(
-        `No pipeline found with name ${this.pipelineName} in project ${this.projectName}`,
-      );
-    }
-
-    const { data: pipeline } =
-      await PipelinesService.getPipelineApiV1PipelinesPipelineIdGet({
-        path: {
-          pipeline_id: pipelines[0]!.id,
-        },
-        throwOnError: true,
-      });
-
-    if (!pipeline) {
-      throw new Error(
-        `No pipeline found with name ${this.pipelineName} in project ${this.projectName}`,
-      );
-    }
+    const filters = this.convertFilter(this.retrieveParams.filters);
 
     const { data: results } =
-      await PipelinesService.runSearchApiV1PipelinesPipelineIdRetrievePost({
+      await runSearchApiV1PipelinesPipelineIdRetrievePost({
         throwOnError: true,
         path: {
-          pipeline_id: pipeline.id,
+          pipeline_id: pipelineId,
         },
         body: {
           ...this.retrieveParams,
           query: extractText(query),
-          search_filters:
-            this.retrieveParams.filters ?? (preFilters as MetadataFilters),
+          search_filters: filters,
           dense_similarity_top_k: this.retrieveParams.similarityTopK!,
         },
       });
 
-    const nodesWithScores = this.resultNodesToNodeWithScore(
-      results.retrieval_nodes,
-    );
-    Settings.callbackManager.dispatchEvent("retrieve-end", {
-      query,
-      nodes: nodesWithScores,
-    });
-    return nodesWithScores;
+    return this.resultNodesToNodeWithScore(results.retrieval_nodes);
   }
 }

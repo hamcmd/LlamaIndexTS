@@ -9,4 +9,9 @@ export type {
   LLMToolResultEvent,
   LlamaIndexEventMaps,
 } from "./settings/callback-manager";
-export type { JSONArray, JSONObject, JSONValue } from "./type";
+export {
+  EventCaller,
+  getEventCaller,
+  withEventCaller,
+} from "./settings/event-caller";
+export type { JSONArray, JSONObject, JSONValue, UUID } from "./type";

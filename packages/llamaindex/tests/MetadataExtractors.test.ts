@@ -1,7 +1,5 @@
 import { Document } from "@llamaindex/core/schema";
 import { Settings } from "llamaindex";
-import type { ServiceContext } from "llamaindex/ServiceContext";
-import { serviceContextFromDefaults } from "llamaindex/ServiceContext";
 import { OpenAIEmbedding } from "llamaindex/embeddings/index";
 import {
   KeywordExtractor,
@@ -10,7 +8,7 @@ import {
   TitleExtractor,
 } from "llamaindex/extractors/index";
 import { OpenAI } from "llamaindex/llm/openai";
-import { SentenceSplitter } from "llamaindex/nodeParsers/index";
+import { SentenceSplitter } from "llamaindex/node-parser";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import {
   DEFAULT_LLM_TEXT_OUTPUT,
@@ -19,8 +17,6 @@ import {
 } from "./utility/mockOpenAI.js";
 
 describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
-  let serviceContext: ServiceContext;
-
   beforeAll(async () => {
     const languageModel = new OpenAI({
       model: "gpt-3.5-turbo",
@@ -33,11 +29,6 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     const embedModel = new OpenAIEmbedding();
 
     mockEmbeddingModel(embedModel);
-
-    serviceContext = serviceContextFromDefaults({
-      llm: languageModel,
-      embedModel,
-    });
   });
 
   afterAll(() => {
@@ -52,7 +43,7 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     ]);
 
     const keywordExtractor = new KeywordExtractor({
-      llm: serviceContext.llm,
+      llm: Settings.llm,
       keywords: 5,
     });
 
@@ -71,7 +62,7 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     ]);
 
     const titleExtractor = new TitleExtractor({
-      llm: serviceContext.llm,
+      llm: Settings.llm,
       nodes: 5,
     });
 
@@ -90,7 +81,7 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     ]);
 
     const questionsAnsweredExtractor = new QuestionsAnsweredExtractor({
-      llm: serviceContext.llm,
+      llm: Settings.llm,
       questions: 5,
     });
 
@@ -102,6 +93,35 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     });
   });
 
+  test("[MetadataExtractor] QuestionsAnsweredExtractor uses custom prompt template", async () => {
+    const nodeParser = new SentenceSplitter();
+
+    const nodes = nodeParser.getNodesFromDocuments([
+      new Document({ text: DEFAULT_LLM_TEXT_OUTPUT }),
+    ]);
+
+    const llmCompleteSpy = vi.spyOn(Settings.llm, "complete");
+
+    const questionsAnsweredExtractor = new QuestionsAnsweredExtractor({
+      llm: Settings.llm,
+      questions: 5,
+      promptTemplate: `This is a custom prompt template for {context} with {numQuestions} questions`,
+    });
+
+    await questionsAnsweredExtractor.processNodes(nodes);
+
+    expect(llmCompleteSpy).toHaveBeenCalled();
+
+    // Build the expected prompt
+    const expectedPrompt = `This is a custom prompt template for ${DEFAULT_LLM_TEXT_OUTPUT} with 5 questions`;
+
+    // Get the actual prompt used in llm.complete
+    const actualPrompt = llmCompleteSpy.mock?.calls?.[0]?.[0];
+
+    // Assert that the prompts match
+    expect(actualPrompt).toEqual({ prompt: expectedPrompt });
+  });
+
   test("[MetadataExtractor] SumamryExtractor returns sectionSummary metadata", async () => {
     const nodeParser = new SentenceSplitter();
 
@@ -110,7 +130,7 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     ]);
 
     const summaryExtractor = new SummaryExtractor({
-      llm: serviceContext.llm,
+      llm: Settings.llm,
     });
 
     const nodesWithKeywordMetadata = await summaryExtractor.processNodes(nodes);
@@ -118,5 +138,34 @@ describe("[MetadataExtractor]: Extractors should populate the metadata", () => {
     expect(nodesWithKeywordMetadata[0]!.metadata).toMatchObject({
       sectionSummary: DEFAULT_LLM_TEXT_OUTPUT,
     });
+  });
+
+  test("[KeywordExtractor] KeywordExtractor uses custom prompt template", async () => {
+    const nodeParser = new SentenceSplitter();
+
+    const nodes = nodeParser.getNodesFromDocuments([
+      new Document({ text: DEFAULT_LLM_TEXT_OUTPUT }),
+    ]);
+
+    const llmCompleteSpy = vi.spyOn(Settings.llm, "complete");
+
+    const keywordExtractor = new KeywordExtractor({
+      llm: Settings.llm,
+      keywords: 5,
+      promptTemplate: `This is a custom prompt template for {context} with {maxKeywords} keywords`,
+    });
+
+    await keywordExtractor.processNodes(nodes);
+
+    expect(llmCompleteSpy).toHaveBeenCalled();
+
+    // Build the expected prompt
+    const expectedPrompt = `This is a custom prompt template for ${DEFAULT_LLM_TEXT_OUTPUT} with 5 keywords`;
+
+    // Get the actual prompt used in llm.complete
+    const actualPrompt = llmCompleteSpy.mock?.calls?.[0]?.[0];
+
+    // Assert that the prompts match
+    expect(actualPrompt).toEqual({ prompt: expectedPrompt });
   });
 });

@@ -1,83 +1,11 @@
-import type { BaseTool, MessageContent } from "@llamaindex/core/llms";
+import type { BaseTool } from "@llamaindex/core/llms";
+import {
+  BaseObjectNodeMapping,
+  ObjectRetriever,
+} from "@llamaindex/core/objects";
 import type { BaseNode, Metadata } from "@llamaindex/core/schema";
 import { TextNode } from "@llamaindex/core/schema";
-import { extractText } from "@llamaindex/core/utils";
-import type { BaseRetriever } from "../Retriever.js";
 import type { VectorStoreIndex } from "../indices/vectorStore/index.js";
-
-// Assuming that necessary interfaces and classes (like OT, TextNode, BaseNode, etc.) are defined elsewhere
-// Import statements (e.g., for TextNode, BaseNode) should be added based on your project's structure
-
-export abstract class BaseObjectNodeMapping {
-  // TypeScript doesn't support Python's classmethod directly, but we can use static methods as an alternative
-  abstract fromObjects<OT>(objs: OT[], ...args: any[]): BaseObjectNodeMapping;
-
-  // Abstract methods in TypeScript
-  abstract objNodeMapping(): Record<any, any>;
-  abstract toNode(obj: any): TextNode;
-
-  // Concrete methods can be defined as usual
-  validateObject(obj: any): void {}
-
-  // Implementing the add object logic
-  addObj(obj: any): void {
-    this.validateObject(obj);
-    this._addObj(obj);
-  }
-
-  // Abstract method for internal add object logic
-  abstract _addObj(obj: any): void;
-
-  // Implementing toNodes method
-  toNodes(objs: any[]): TextNode[] {
-    return objs.map((obj) => this.toNode(obj));
-  }
-
-  // Abstract method for internal from node logic
-  abstract _fromNode(node: BaseNode): any;
-
-  // Implementing fromNode method
-  fromNode(node: BaseNode): any {
-    const obj = this._fromNode(node);
-    this.validateObject(obj);
-    return obj;
-  }
-
-  // Abstract methods for persistence
-  abstract persist(persistDir: string, objNodeMappingFilename: string): void;
-}
-
-// You will need to implement specific subclasses of BaseObjectNodeMapping as per your project requirements.
-
-// todo: multimodal support
-type QueryType = MessageContent;
-
-export class ObjectRetriever<T = unknown> {
-  _retriever: BaseRetriever;
-  _objectNodeMapping: BaseObjectNodeMapping;
-
-  constructor(
-    retriever: BaseRetriever,
-    objectNodeMapping: BaseObjectNodeMapping,
-  ) {
-    this._retriever = retriever;
-    this._objectNodeMapping = objectNodeMapping;
-  }
-
-  // In TypeScript, getters are defined like this.
-  get retriever(): BaseRetriever {
-    return this._retriever;
-  }
-
-  // Translating the retrieve method
-  async retrieve(strOrQueryBundle: QueryType): Promise<T[]> {
-    const nodes = await this.retriever.retrieve({
-      query: extractText(strOrQueryBundle),
-    });
-    const objs = nodes.map((n) => this._objectNodeMapping.fromNode(n.node));
-    return objs;
-  }
-}
 
 const convertToolToNode = (tool: BaseTool): TextNode => {
   const nodeText = `
@@ -103,6 +31,7 @@ export class SimpleToolNodeMapping extends BaseObjectNodeMapping {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   objNodeMapping(): Record<any, any> {
     return this._tools;
   }
@@ -138,10 +67,12 @@ export class SimpleToolNodeMapping extends BaseObjectNodeMapping {
     return this._fromNode(node);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromObjects(objs: any, ...args: any[]): BaseObjectNodeMapping {
     return new SimpleToolNodeMapping(objs);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fromObjects<OT>(objs: any, ...args: any[]): BaseObjectNodeMapping {
     return new SimpleToolNodeMapping(objs);
   }
@@ -151,16 +82,19 @@ export class ObjectIndex {
   private _index: VectorStoreIndex;
   private _objectNodeMapping: BaseObjectNodeMapping;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private constructor(index: any, objectNodeMapping: BaseObjectNodeMapping) {
     this._index = index;
     this._objectNodeMapping = objectNodeMapping;
   }
 
   static async fromObjects(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     objects: any,
     objectMapping: BaseObjectNodeMapping,
-    // TODO: fix any (bundling issue)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     indexCls: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     indexKwargs?: Record<string, any>,
   ): Promise<ObjectIndex> {
     if (objectMapping === null) {
@@ -174,6 +108,7 @@ export class ObjectIndex {
     return new ObjectIndex(index, objectMapping);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async insertObject(obj: any): Promise<void> {
     this._objectNodeMapping.addObj(obj);
     const node = this._objectNodeMapping.toNode(obj);
@@ -184,6 +119,7 @@ export class ObjectIndex {
     return this._objectNodeMapping.objNodeMapping();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async asRetriever(kwargs: any): Promise<ObjectRetriever<any>> {
     return new ObjectRetriever(
       this._index.asRetriever(kwargs),
@@ -191,6 +127,7 @@ export class ObjectIndex {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asNodeRetriever(kwargs: any): any {
     return this._index.asRetriever(kwargs);
   }

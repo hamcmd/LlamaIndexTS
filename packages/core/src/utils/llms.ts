@@ -1,5 +1,16 @@
+import { fs } from "@llamaindex/env";
+import { filetypemime } from "magic-bytes.js";
 import type {
   ChatMessage,
+  ChatResponse,
+  ChatResponseChunk,
+  CompletionResponse,
+  LLM,
+  LLMChatParamsNonStreaming,
+  LLMChatParamsStreaming,
+  LLMCompletionParamsNonStreaming,
+  LLMCompletionParamsStreaming,
+  LLMMetadata,
   MessageContent,
   MessageContentDetail,
   MessageContentTextDetail,
@@ -106,4 +117,117 @@ export function toToolDescriptions(tools: ToolMetadata[]): string {
   }, {});
 
   return JSON.stringify(toolsObj, null, 4);
+}
+
+async function blobToDataUrl(input: Blob) {
+  const buffer = Buffer.from(await input.arrayBuffer());
+  const mimes = filetypemime(buffer);
+  if (mimes.length < 1) {
+    throw new Error("Unsupported image type");
+  }
+  return "data:" + mimes[0] + ";base64," + buffer.toString("base64");
+}
+
+export async function imageToDataUrl(
+  input: ImageType | Uint8Array,
+): Promise<string> {
+  // first ensure, that the input is a Blob
+  if (
+    (input instanceof URL && input.protocol === "file:") ||
+    typeof input === "string"
+  ) {
+    // string or file URL
+    const dataBuffer = await fs.readFile(
+      input instanceof URL ? input.pathname : input,
+    );
+    input = new Blob([dataBuffer]);
+  } else if (!(input instanceof Blob)) {
+    if (input instanceof URL) {
+      throw new Error(`Unsupported URL with protocol: ${input.protocol}`);
+    } else if (input instanceof Uint8Array) {
+      input = new Blob([input]); // convert Uint8Array to Blob
+    } else {
+      throw new Error(`Unsupported input type: ${typeof input}`);
+    }
+  }
+  return await blobToDataUrl(input);
+}
+
+export class MockLLM implements LLM {
+  metadata: LLMMetadata;
+  options: {
+    timeBetweenToken: number;
+    responseMessage: string;
+  };
+
+  constructor(options?: {
+    timeBetweenToken?: number;
+    responseMessage?: string;
+    metadata?: LLMMetadata;
+  }) {
+    this.options = {
+      timeBetweenToken: options?.timeBetweenToken ?? 20,
+      responseMessage: options?.responseMessage ?? "This is a mock response",
+    };
+    this.metadata = options?.metadata ?? {
+      model: "MockLLM",
+      temperature: 0.5,
+      topP: 0.5,
+      contextWindow: 1024,
+      tokenizer: undefined,
+    };
+  }
+
+  chat(
+    params: LLMChatParamsStreaming<object, object>,
+  ): Promise<AsyncIterable<ChatResponseChunk>>;
+  chat(
+    params: LLMChatParamsNonStreaming<object, object>,
+  ): Promise<ChatResponse<object>>;
+  async chat(
+    params:
+      | LLMChatParamsStreaming<object, object>
+      | LLMChatParamsNonStreaming<object, object>,
+  ): Promise<AsyncIterable<ChatResponseChunk> | ChatResponse<object>> {
+    const responseMessage = this.options.responseMessage;
+    const timeBetweenToken = this.options.timeBetweenToken;
+
+    if (params.stream) {
+      return (async function* () {
+        for (const char of responseMessage) {
+          yield { delta: char, raw: {} };
+          await new Promise((resolve) => setTimeout(resolve, timeBetweenToken));
+        }
+      })();
+    }
+
+    return {
+      message: { content: responseMessage, role: "assistant" },
+      raw: {},
+    };
+  }
+
+  async complete(
+    params: LLMCompletionParamsStreaming,
+  ): Promise<AsyncIterable<CompletionResponse>>;
+  async complete(
+    params: LLMCompletionParamsNonStreaming,
+  ): Promise<CompletionResponse>;
+  async complete(
+    params: LLMCompletionParamsStreaming | LLMCompletionParamsNonStreaming,
+  ): Promise<AsyncIterable<CompletionResponse> | CompletionResponse> {
+    const responseMessage = this.options.responseMessage;
+    const timeBetweenToken = this.options.timeBetweenToken;
+
+    if (params.stream) {
+      return (async function* () {
+        for (const char of responseMessage) {
+          yield { delta: char, text: char, raw: {} };
+          await new Promise((resolve) => setTimeout(resolve, timeBetweenToken));
+        }
+      })();
+    }
+
+    return { text: responseMessage, raw: {} };
+  }
 }

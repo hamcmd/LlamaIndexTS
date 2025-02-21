@@ -1,7 +1,6 @@
 import { PromptMixin, type ModuleRecord } from "@llamaindex/core/prompts";
 import { Document, MetadataMode } from "@llamaindex/core/schema";
 import { extractText } from "@llamaindex/core/utils";
-import type { ServiceContext } from "../ServiceContext.js";
 import { SummaryIndex } from "../indices/summary/index.js";
 import type {
   FaithfulnessRefinePrompt,
@@ -22,19 +21,16 @@ export class FaithfulnessEvaluator
   extends PromptMixin
   implements BaseEvaluator
 {
-  private serviceContext?: ServiceContext | undefined;
   private raiseError: boolean;
   private evalTemplate: FaithfulnessTextQAPrompt;
   private refineTemplate: FaithfulnessRefinePrompt;
 
   constructor(params?: {
-    serviceContext?: ServiceContext | undefined;
     raiseError?: boolean | undefined;
     faithfulnessSystemPrompt?: FaithfulnessTextQAPrompt | undefined;
     faithFulnessRefinePrompt?: FaithfulnessRefinePrompt | undefined;
   }) {
     super();
-    this.serviceContext = params?.serviceContext;
     this.raiseError = params?.raiseError ?? false;
 
     this.evalTemplate =
@@ -47,6 +43,7 @@ export class FaithfulnessEvaluator
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _getPrompts(): { [x: string]: any } {
     return {
       faithfulnessSystemPrompt: this.evalTemplate,
@@ -91,9 +88,7 @@ export class FaithfulnessEvaluator
 
     const docs = contexts?.map((context) => new Document({ text: context }));
 
-    const index = await SummaryIndex.fromDocuments(docs, {
-      serviceContext: this.serviceContext,
-    });
+    const index = await SummaryIndex.fromDocuments(docs, {});
 
     const queryEngine = index.asQueryEngine();
 
@@ -103,7 +98,8 @@ export class FaithfulnessEvaluator
     });
 
     const responseObj = await queryEngine.query({
-      query: response,
+      query: { query: response },
+      stream: false,
     });
 
     const rawResponseTxt = responseObj.toString();

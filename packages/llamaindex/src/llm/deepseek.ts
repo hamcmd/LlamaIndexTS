@@ -1,5 +1,5 @@
 import { getEnv } from "@llamaindex/env";
-import { OpenAI } from "./openai.js";
+import { OpenAI } from "@llamaindex/openai";
 
 export const DEEPSEEK_MODELS = {
   "deepseek-coder": { contextWindow: 128000 },
@@ -10,7 +10,9 @@ type DeepSeekModelName = keyof typeof DEEPSEEK_MODELS;
 const DEFAULT_MODEL: DeepSeekModelName = "deepseek-coder";
 
 export class DeepSeekLLM extends OpenAI {
-  constructor(init?: Partial<OpenAI> & { model?: DeepSeekModelName }) {
+  constructor(
+    init?: Omit<Partial<OpenAI>, "session"> & { model?: DeepSeekModelName },
+  ) {
     const {
       apiKey = getEnv("DEEPSEEK_API_KEY"),
       additionalSessionOptions = {},

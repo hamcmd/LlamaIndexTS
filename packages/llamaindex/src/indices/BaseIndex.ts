@@ -1,49 +1,18 @@
+import type {
+  BaseChatEngine,
+  ContextChatEngineOptions,
+} from "@llamaindex/core/chat-engine";
+import type { BaseQueryEngine } from "@llamaindex/core/query-engine";
+import type { BaseSynthesizer } from "@llamaindex/core/response-synthesizers";
+import type { BaseRetriever } from "@llamaindex/core/retriever";
 import type { BaseNode, Document } from "@llamaindex/core/schema";
-import type { BaseRetriever } from "../Retriever.js";
-import type { ServiceContext } from "../ServiceContext.js";
-import { nodeParserFromSettingsOrContext } from "../Settings.js";
+import type { BaseDocumentStore } from "@llamaindex/core/storage/doc-store";
+import type { BaseIndexStore } from "@llamaindex/core/storage/index-store";
 import { runTransformations } from "../ingestion/IngestionPipeline.js";
+import { Settings } from "../Settings.js";
 import type { StorageContext } from "../storage/StorageContext.js";
-import type { BaseDocumentStore } from "../storage/docStore/types.js";
-import type { BaseIndexStore } from "../storage/indexStore/types.js";
-import type { BaseSynthesizer } from "../synthesizers/types.js";
-import type { QueryEngine } from "../types.js";
-import { IndexStruct } from "./IndexStruct.js";
-import { IndexStructType } from "./json-to-index-struct.js";
-
-// A table of keywords mapping keywords to text chunks.
-export class KeywordTable extends IndexStruct {
-  table: Map<string, Set<string>> = new Map();
-  type: IndexStructType = IndexStructType.KEYWORD_TABLE;
-
-  addNode(keywords: string[], nodeId: string): void {
-    keywords.forEach((keyword) => {
-      if (!this.table.has(keyword)) {
-        this.table.set(keyword, new Set());
-      }
-      this.table.get(keyword)!.add(nodeId);
-    });
-  }
-
-  deleteNode(keywords: string[], nodeId: string) {
-    keywords.forEach((keyword) => {
-      if (this.table.has(keyword)) {
-        this.table.get(keyword)!.delete(nodeId);
-      }
-    });
-  }
-
-  toJson(): Record<string, unknown> {
-    return {
-      ...super.toJson(),
-      table: this.table,
-      type: this.type,
-    };
-  }
-}
 
 export interface BaseIndexInit<T> {
-  serviceContext?: ServiceContext | undefined;
   storageContext: StorageContext;
   docStore: BaseDocumentStore;
   indexStore?: BaseIndexStore | undefined;
@@ -55,14 +24,12 @@ export interface BaseIndexInit<T> {
  * they can be retrieved for our queries.
  */
 export abstract class BaseIndex<T> {
-  serviceContext?: ServiceContext | undefined;
   storageContext: StorageContext;
   docStore: BaseDocumentStore;
   indexStore?: BaseIndexStore | undefined;
   indexStruct: T;
 
   constructor(init: BaseIndexInit<T>) {
-    this.serviceContext = init.serviceContext;
     this.storageContext = init.storageContext;
     this.docStore = init.docStore;
     this.indexStore = init.indexStore;
@@ -71,8 +38,9 @@ export abstract class BaseIndex<T> {
 
   /**
    * Create a new retriever from the index.
-   * @param retrieverOptions
+   * @param options
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abstract asRetriever(options?: any): BaseRetriever;
 
   /**
@@ -83,17 +51,22 @@ export abstract class BaseIndex<T> {
   abstract asQueryEngine(options?: {
     retriever?: BaseRetriever;
     responseSynthesizer?: BaseSynthesizer;
-  }): QueryEngine;
+  }): BaseQueryEngine;
+
+  /**
+   * Create a new chat engine from the index.
+   * @param options
+   */
+  abstract asChatEngine(
+    options?: Omit<ContextChatEngineOptions, "retriever">,
+  ): BaseChatEngine;
 
   /**
    * Insert a document into the index.
    * @param document
    */
   async insert(document: Document) {
-    const nodes = await runTransformations(
-      [document],
-      [nodeParserFromSettingsOrContext(this.serviceContext)],
-    );
+    const nodes = await runTransformations([document], [Settings.nodeParser]);
     await this.insertNodes(nodes);
     await this.docStore.setDocumentHash(document.id_, document.hash);
   }

@@ -1,13 +1,17 @@
-# LlamaIndex.TS
+<p align="center">
+  <img height="100" width="100" alt="LlamaIndex logo" src="https://ts.llamaindex.ai/square.svg" />
+</p>
+<h1 align="center">LlamaIndex.TS</h1>
+<h3 align="center">
+  Data framework for your LLM application.
+</h3>
 
 [![NPM Version](https://img.shields.io/npm/v/llamaindex)](https://www.npmjs.com/package/llamaindex)
 [![NPM License](https://img.shields.io/npm/l/llamaindex)](https://www.npmjs.com/package/llamaindex)
 [![NPM Downloads](https://img.shields.io/npm/dm/llamaindex)](https://www.npmjs.com/package/llamaindex)
 [![Discord](https://img.shields.io/discord/1059199217496772688)](https://discord.com/invite/eN6D2HQ4aX)
 
-LlamaIndex is a data framework for your LLM application.
-
-Use your own data with large language models (LLMs, OpenAI ChatGPT and others) in Typescript and Javascript.
+Use your own data with large language models (LLMs, OpenAI ChatGPT and others) in JS runtime environments with TypeScript support.
 
 Documentation: https://ts.llamaindex.ai/
 
@@ -19,16 +23,35 @@ Try examples online:
 
 LlamaIndex.TS aims to be a lightweight, easy to use set of libraries to help you integrate large language models into your applications with your own data.
 
-## Multiple JS Environment Support
+## Compatibility
+
+### Multiple JS Environment Support
 
 LlamaIndex.TS supports multiple JS environments, including:
 
-- Node.js (18, 20, 22) ✅
+- Node.js >= 20 ✅
 - Deno ✅
 - Bun ✅
-- React Server Components (Next.js) ✅
+- Nitro ✅
+- Vercel Edge Runtime ✅ (with some limitations)
+- Cloudflare Workers ✅ (with some limitations)
 
 For now, browser support is limited due to the lack of support for [AsyncLocalStorage-like APIs](https://github.com/tc39/proposal-async-context)
+
+### Supported LLMs:
+
+- OpenAI LLms
+- Anthropic LLms
+- Groq LLMs
+- Llama2, Llama3, Llama3.1 LLMs
+- MistralAI LLMs
+- Fireworks LLMs
+- DeepSeek LLMs
+- ReplicateAI LLMs
+- TogetherAI LLMs
+- HuggingFace LLms
+- DeepInfra LLMs
+- Gemini LLMs
 
 ## Getting started
 
@@ -38,170 +61,20 @@ pnpm install llamaindex
 yarn add llamaindex
 ```
 
-### Setup TypeScript
+### Setup in Node.js, Deno, Bun, TypeScript...?
 
-```json5
-{
-  compilerOptions: {
-    // ⬇️ add this line to your tsconfig.json
-    moduleResolution: "bundler", // or "node16"
-  },
-}
-```
+See our official document: <https://ts.llamaindex.ai/docs/llamaindex/getting_started/>
 
-<details>
-   <summary>Why?</summary>
-  We are shipping both ESM and CJS module, and compatible with Vercel Edge, Cloudflare Workers, and other serverless platforms.
+### Adding provider packages
 
-So we are using [conditional exports](https://nodejs.org/api/packages.html#conditional-exports) to support all environments.
+In most cases, you'll also need to install provider packages to use LlamaIndexTS. These are for adding AI models, file readers for ingestion or storing documents, e.g. in vector databases.
 
-This is a kind of modern way of shipping packages, but might cause TypeScript type check to fail because of legacy module resolution.
+For example, to use the OpenAI LLM, you would install the following package:
 
-Imaging you put output file into `/dist/openai.js` but you are importing `llamaindex/openai` in your code, and set `package.json` like this:
-
-```json
-{
-  "exports": {
-    "./openai": "./dist/openai.js"
-  }
-}
-```
-
-In old module resolution, TypeScript will not be able to find the module because it is not follow the file structure, even you run `node index.js` successfully. (on Node.js >=16)
-
-See more about [moduleResolution](https://www.typescriptlang.org/docs/handbook/modules/theory.html#module-resolution) or
-[TypeScript 5.0 blog](https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/#--moduleresolution-bundler7).
-
-</details>
-
-### Node.js
-
-```ts
-import fs from "fs/promises";
-import { Document, VectorStoreIndex } from "llamaindex";
-
-async function main() {
-  // Load essay from abramov.txt in Node
-  const essay = await fs.readFile(
-    "node_modules/llamaindex/examples/abramov.txt",
-    "utf-8",
-  );
-
-  // Create Document object with essay
-  const document = new Document({ text: essay });
-
-  // Split text and create embeddings. Store them in a VectorStoreIndex
-  const index = await VectorStoreIndex.fromDocuments([document]);
-
-  // Query the index
-  const queryEngine = index.asQueryEngine();
-  const response = await queryEngine.query({
-    query: "What did the author do in college?",
-  });
-
-  // Output response
-  console.log(response.toString());
-}
-
-main();
-```
-
-```bash
-# `pnpm install tsx` before running the script
-node --import tsx ./main.ts
-```
-
-### React Server Component (Next.js, Waku, Redwood.JS...)
-
-First, you will need to add a llamaindex plugin to your Next.js project.
-
-```js
-// next.config.js
-const withLlamaIndex = require("llamaindex/next");
-
-module.exports = withLlamaIndex({
-  // your next.js config
-});
-```
-
-You can combine `ai` with `llamaindex` in Next.js with RSC (React Server Components).
-
-```tsx
-// src/apps/page.tsx
-"use client";
-import { chatWithAgent } from "@/actions";
-import type { JSX } from "react";
-import { useFormState } from "react-dom";
-
-// You can use the Edge runtime in Next.js by adding this line:
-// export const runtime = "edge";
-
-export default function Home() {
-  const [ui, action] = useFormState<JSX.Element | null>(async () => {
-    return chatWithAgent("hello!", []);
-  }, null);
-  return (
-    <main>
-      {ui}
-      <form action={action}>
-        <button>Chat</button>
-      </form>
-    </main>
-  );
-}
-```
-
-```tsx
-// src/actions/index.ts
-"use server";
-import { createStreamableUI } from "ai/rsc";
-import { OpenAIAgent } from "llamaindex";
-import type { ChatMessage } from "llamaindex/llm/types";
-
-export async function chatWithAgent(
-  question: string,
-  prevMessages: ChatMessage[] = [],
-) {
-  const agent = new OpenAIAgent({
-    tools: [
-      // ... adding your tools here
-    ],
-  });
-  const responseStream = await agent.chat({
-    stream: true,
-    message: question,
-    chatHistory: prevMessages,
-  });
-  const uiStream = createStreamableUI(<div>loading...</div>);
-  responseStream
-    .pipeTo(
-      new WritableStream({
-        start: () => {
-          uiStream.update("response:");
-        },
-        write: async (message) => {
-          uiStream.append(message.response.delta);
-        },
-      }),
-    )
-    .catch(console.error);
-  return uiStream.value;
-}
-```
-
-### Vite
-
-We have some wasm dependencies for better performance. You can use `vite-plugin-wasm` to load them.
-
-```ts
-import wasm from "vite-plugin-wasm";
-
-export default {
-  plugins: [wasm()],
-  ssr: {
-    external: ["tiktoken"],
-  },
-};
+```shell
+npm install @llamaindex/openai
+pnpm install @llamaindex/openai
+yarn add @llamaindex/openai
 ```
 
 ## Playground
@@ -224,57 +97,11 @@ Check out our NextJS playground at https://llama-playground.vercel.app/. The sou
 
 - [SimplePrompt](/packages/llamaindex/src/Prompt.ts): A simple standardized function call definition that takes in inputs and formats them in a template literal. SimplePrompts can be specialized using currying and combined using other SimplePrompt functions.
 
-## Tips when using in non-Node.js environments
-
-When you are importing `llamaindex` in a non-Node.js environment(such as React Server Components, Cloudflare Workers, etc.)
-Some classes are not exported from top-level entry file.
-
-The reason is that some classes are only compatible with Node.js runtime,(e.g. `PDFReader`) which uses Node.js specific APIs(like `fs`, `child_process`, `crypto`).
-
-If you need any of those classes, you have to import them instead directly though their file path in the package.
-Here's an example for importing the `PineconeVectorStore` class:
-
-```typescript
-import { PineconeVectorStore } from "llamaindex/storage/vectorStore/PineconeVectorStore";
-```
-
-As the `PDFReader` is not working with the Edge runtime, here's how to use the `SimpleDirectoryReader` with the `LlamaParseReader` to load PDFs:
-
-```typescript
-import { SimpleDirectoryReader } from "llamaindex/readers/SimpleDirectoryReader";
-import { LlamaParseReader } from "llamaindex/readers/LlamaParseReader";
-
-export const DATA_DIR = "./data";
-
-export async function getDocuments() {
-  const reader = new SimpleDirectoryReader();
-  // Load PDFs using LlamaParseReader
-  return await reader.loadData({
-    directoryPath: DATA_DIR,
-    fileExtToReader: {
-      pdf: new LlamaParseReader({ resultType: "markdown" }),
-    },
-  });
-}
-```
-
-> _Note_: Reader classes have to be added explictly to the `fileExtToReader` map in the Edge version of the `SimpleDirectoryReader`.
-
-You'll find a complete example with LlamaIndexTS here: https://github.com/run-llama/create_llama_projects/tree/main/nextjs-edge-llamaparse
-
-## Supported LLMs:
-
-- OpenAI GPT-3.5-turbo and GPT-4
-- Anthropic Claude 3 (Opus, Sonnet, and Haiku) and the legacy models (Claude 2 and Instant)
-- Groq LLMs
-- Llama2/3 Chat LLMs (70B, 13B, and 7B parameters)
-- MistralAI Chat LLMs
-- Fireworks Chat LLMs
-
 ## Contributing:
 
-We are in the very early days of LlamaIndex.TS. If you’re interested in hacking on it with us check out our [contributing guide](/CONTRIBUTING.md)
+Please see our [contributing guide](CONTRIBUTING.md) for more information.
+You are highly encouraged to contribute to LlamaIndex.TS!
 
-## Bugs? Questions?
+## Community
 
 Please join our Discord! https://discord.com/invite/eN6D2HQ4aX

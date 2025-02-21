@@ -10,10 +10,13 @@ export default defineConfig({
     format: "prettier",
     lint: "eslint",
   },
-  services: {
-    asClass: true,
-  },
-  types: {
-    enums: "javascript",
-  },
+  plugins: [
+    "@hey-api/schemas",
+    "@hey-api/sdk",
+    {
+      enums: "javascript",
+      identifierCase: "preserve",
+      name: "@hey-api/typescript",
+    },
+  ],
 });

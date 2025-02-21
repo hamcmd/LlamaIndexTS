@@ -1,4 +1,5 @@
-import { FunctionTool, OpenAI, ToolCallOptions } from "llamaindex";
+import { OpenAI } from "@llamaindex/openai";
+import { FunctionTool, ToolCallOptions } from "llamaindex";
 
 (async () => {
   // The tool call will generate a partial JSON for `gpt-4-turbo`
@@ -13,7 +14,7 @@ import { FunctionTool, OpenAI, ToolCallOptions } from "llamaindex";
   }
 })();
 
-async function callLLM(init: Partial<OpenAI>) {
+async function callLLM(init: { model: string }) {
   const csvData =
     "Country,Average Height (cm)\nNetherlands,156\nDenmark,158\nNorway,160";
 

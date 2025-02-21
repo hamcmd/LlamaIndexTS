@@ -1,5 +1,1196 @@
 # llamaindex
 
+## 0.9.2
+
+### Patch Changes
+
+- 88d776f: fix: enhance error message in llamacloud
+- Updated dependencies [c902fcb]
+  - @llamaindex/cloud@3.0.2
+
+## 0.9.1
+
+### Patch Changes
+
+- 6d37d44: fix: Update react agent to support tool calls from Cohere command-r models
+- Updated dependencies [cc50c9c]
+  - @llamaindex/env@0.1.28
+  - @llamaindex/cloud@3.0.1
+  - @llamaindex/core@0.5.1
+  - @llamaindex/node-parser@1.0.1
+  - @llamaindex/openai@0.1.53
+
+## 0.9.0
+
+### Minor Changes
+
+- 6a4a737: Remove re-exports from llamaindex main package
+- b490376: Remove deprecated ServiceContext
+- f4588bc: Remove readers package from llamaindex
+
+### Patch Changes
+
+- d924c63: feat: asChatEngine function for index
+- Updated dependencies [6a4a737]
+- Updated dependencies [d924c63]
+  - @llamaindex/core@0.5.0
+  - @llamaindex/cloud@3.0.0
+  - @llamaindex/node-parser@1.0.0
+  - @llamaindex/openai@0.1.52
+
+## 0.8.37
+
+### Patch Changes
+
+- Updated dependencies [1c908fd]
+  - @llamaindex/pinecone@0.0.4
+  - @llamaindex/postgres@0.0.32
+  - @llamaindex/weaviate@0.0.4
+  - @llamaindex/mongodb@0.0.4
+  - @llamaindex/upstash@0.0.4
+  - @llamaindex/chroma@0.0.4
+  - @llamaindex/milvus@0.0.4
+  - @llamaindex/qdrant@0.0.4
+  - @llamaindex/astra@0.0.4
+  - @llamaindex/azure@0.0.4
+  - @llamaindex/huggingface@0.0.35
+  - @llamaindex/mixedbread@0.0.4
+  - @llamaindex/portkey-ai@0.0.32
+  - @llamaindex/anthropic@0.0.33
+  - @llamaindex/deepinfra@0.0.35
+  - @llamaindex/replicate@0.0.32
+  - @llamaindex/mistral@0.0.4
+  - @llamaindex/cohere@0.0.4
+  - @llamaindex/google@0.0.6
+  - @llamaindex/ollama@0.0.39
+  - @llamaindex/openai@0.1.51
+  - @llamaindex/clip@0.0.35
+  - @llamaindex/groq@0.0.50
+  - @llamaindex/vllm@0.0.21
+  - @llamaindex/node-parser@0.0.24
+  - @llamaindex/readers@1.0.25
+  - @llamaindex/cloud@2.0.24
+  - @llamaindex/core@0.4.23
+  - @llamaindex/env@0.1.27
+
+## 0.8.36
+
+### Patch Changes
+
+- cb608b5: fix: bundle output incorrect
+- Updated dependencies [cb608b5]
+  - @llamaindex/pinecone@0.0.3
+  - @llamaindex/postgres@0.0.31
+  - @llamaindex/weaviate@0.0.3
+  - @llamaindex/mongodb@0.0.3
+  - @llamaindex/upstash@0.0.3
+  - @llamaindex/chroma@0.0.3
+  - @llamaindex/milvus@0.0.3
+  - @llamaindex/qdrant@0.0.3
+  - @llamaindex/astra@0.0.3
+  - @llamaindex/azure@0.0.3
+  - @llamaindex/huggingface@0.0.34
+  - @llamaindex/mixedbread@0.0.3
+  - @llamaindex/portkey-ai@0.0.31
+  - @llamaindex/anthropic@0.0.32
+  - @llamaindex/deepinfra@0.0.34
+  - @llamaindex/replicate@0.0.31
+  - @llamaindex/mistral@0.0.3
+  - @llamaindex/cohere@0.0.3
+  - @llamaindex/google@0.0.5
+  - @llamaindex/ollama@0.0.38
+  - @llamaindex/openai@0.1.50
+  - @llamaindex/clip@0.0.34
+  - @llamaindex/groq@0.0.49
+  - @llamaindex/vllm@0.0.20
+  - @llamaindex/node-parser@0.0.23
+  - @llamaindex/readers@1.0.24
+  - @llamaindex/cloud@2.0.23
+  - @llamaindex/core@0.4.22
+  - @llamaindex/env@0.1.26
+
+## 0.8.35
+
+### Patch Changes
+
+- Updated dependencies [b6ea2bf]
+- Updated dependencies [15563a0]
+  - @llamaindex/google@0.0.4
+  - @llamaindex/openai@0.1.49
+  - @llamaindex/clip@0.0.33
+  - @llamaindex/deepinfra@0.0.33
+  - @llamaindex/groq@0.0.48
+  - @llamaindex/huggingface@0.0.33
+  - @llamaindex/vllm@0.0.19
+
+## 0.8.34
+
+### Patch Changes
+
+- 9f8ad37: fix: missing peer deps in llamaindex
+- Updated dependencies [7265f74]
+  - @llamaindex/openai@0.1.48
+  - @llamaindex/clip@0.0.32
+  - @llamaindex/deepinfra@0.0.32
+  - @llamaindex/groq@0.0.47
+  - @llamaindex/huggingface@0.0.32
+  - @llamaindex/vllm@0.0.18
+
+## 0.8.33
+
+### Patch Changes
+
+- Updated dependencies [2019a04]
+- Updated dependencies [e38e474]
+- Updated dependencies [067a489]
+  - @llamaindex/openai@0.1.47
+  - @llamaindex/google@0.0.3
+  - @llamaindex/anthropic@0.0.31
+  - @llamaindex/clip@0.0.31
+  - @llamaindex/deepinfra@0.0.31
+  - @llamaindex/groq@0.0.46
+  - @llamaindex/huggingface@0.0.31
+  - @llamaindex/vllm@0.0.17
+
+## 0.8.32
+
+### Patch Changes
+
+- 34faf48: chore: move vector stores to their own packages
+- 4df1fe6: chore: migrate llamaindex llms and embeddings to their own packages
+- 9456616: refactor: @llamaindex/postgres
+- 1931bbc: refactor: @llamaindex/azure
+- Updated dependencies [34faf48]
+- Updated dependencies [4df1fe6]
+- Updated dependencies [9456616]
+- Updated dependencies [d6c270e]
+- Updated dependencies [1892e1c]
+- Updated dependencies [1931bbc]
+- Updated dependencies [8744796]
+  - @llamaindex/astra@0.0.2
+  - @llamaindex/chroma@0.0.2
+  - @llamaindex/milvus@0.0.2
+  - @llamaindex/mongodb@0.0.2
+  - @llamaindex/pinecone@0.0.2
+  - @llamaindex/qdrant@0.0.2
+  - @llamaindex/upstash@0.0.2
+  - @llamaindex/weaviate@0.0.2
+  - @llamaindex/google@0.0.2
+  - @llamaindex/mistral@0.0.2
+  - @llamaindex/core@0.4.21
+  - @llamaindex/cloud@2.0.22
+  - @llamaindex/openai@0.1.46
+  - @llamaindex/azure@0.0.2
+  - @llamaindex/node-parser@0.0.22
+  - @llamaindex/anthropic@0.0.30
+  - @llamaindex/clip@0.0.30
+  - @llamaindex/cohere@0.0.2
+  - @llamaindex/deepinfra@0.0.30
+  - @llamaindex/huggingface@0.0.30
+  - @llamaindex/mixedbread@0.0.2
+  - @llamaindex/ollama@0.0.37
+  - @llamaindex/portkey-ai@0.0.30
+  - @llamaindex/replicate@0.0.30
+  - @llamaindex/postgres@0.0.30
+  - @llamaindex/readers@1.0.23
+  - @llamaindex/groq@0.0.45
+  - @llamaindex/vllm@0.0.16
+
+## 0.8.31
+
+### Patch Changes
+
+- d211b7a: added support for tool calls with results in message history for athropic agent
+- 0ebbfc1: fix: clean up docstore when generating embedding fail
+- Updated dependencies [5dec9f9]
+- Updated dependencies [fd9c829]
+- Updated dependencies [d211b7a]
+  - @llamaindex/cloud@2.0.21
+  - @llamaindex/anthropic@0.0.29
+  - @llamaindex/core@0.4.20
+  - @llamaindex/node-parser@0.0.21
+  - @llamaindex/clip@0.0.29
+  - @llamaindex/deepinfra@0.0.29
+  - @llamaindex/huggingface@0.0.29
+  - @llamaindex/ollama@0.0.36
+  - @llamaindex/openai@0.1.45
+  - @llamaindex/portkey-ai@0.0.29
+  - @llamaindex/replicate@0.0.29
+  - @llamaindex/readers@1.0.22
+  - @llamaindex/groq@0.0.44
+  - @llamaindex/vllm@0.0.15
+
+## 0.8.30
+
+### Patch Changes
+
+- Updated dependencies [012495b]
+  - @llamaindex/cloud@2.0.20
+
+## 0.8.29
+
+### Patch Changes
+
+- dd596a0: Add Gemini 2.0 Flash Experimental
+
+## 0.8.28
+
+### Patch Changes
+
+- Updated dependencies [a9b5b99]
+  - @llamaindex/core@0.4.19
+  - @llamaindex/readers@1.0.21
+  - @llamaindex/cloud@2.0.19
+  - @llamaindex/node-parser@0.0.20
+  - @llamaindex/anthropic@0.0.28
+  - @llamaindex/clip@0.0.28
+  - @llamaindex/deepinfra@0.0.28
+  - @llamaindex/huggingface@0.0.28
+  - @llamaindex/ollama@0.0.35
+  - @llamaindex/openai@0.1.44
+  - @llamaindex/portkey-ai@0.0.28
+  - @llamaindex/replicate@0.0.28
+  - @llamaindex/groq@0.0.43
+  - @llamaindex/vllm@0.0.14
+
+## 0.8.27
+
+### Patch Changes
+
+- b504303: Allow Node 18 again (throw run-time error if not possible) to make Stackblitz work
+- a0e6f57: withLlamaIndex now passes through webpack options to the passed in customized NextJS webpack config. Before it was only passing through the config.
+- Updated dependencies [b504303]
+- Updated dependencies [e0f6cc3]
+  - @llamaindex/env@0.1.25
+  - @llamaindex/core@0.4.18
+  - @llamaindex/cloud@2.0.18
+  - @llamaindex/node-parser@0.0.19
+  - @llamaindex/anthropic@0.0.27
+  - @llamaindex/clip@0.0.27
+  - @llamaindex/deepinfra@0.0.27
+  - @llamaindex/groq@0.0.42
+  - @llamaindex/huggingface@0.0.27
+  - @llamaindex/ollama@0.0.34
+  - @llamaindex/openai@0.1.43
+  - @llamaindex/portkey-ai@0.0.27
+  - @llamaindex/replicate@0.0.27
+  - @llamaindex/readers@1.0.20
+  - @llamaindex/vllm@0.0.13
+
+## 0.8.26
+
+### Patch Changes
+
+- 3d1808b: chore: bump version
+- Updated dependencies [3d1808b]
+  - @llamaindex/core@0.4.17
+  - @llamaindex/openai@0.1.42
+  - @llamaindex/cloud@2.0.17
+  - @llamaindex/node-parser@0.0.18
+  - @llamaindex/anthropic@0.0.26
+  - @llamaindex/clip@0.0.26
+  - @llamaindex/deepinfra@0.0.26
+  - @llamaindex/huggingface@0.0.26
+  - @llamaindex/ollama@0.0.33
+  - @llamaindex/portkey-ai@0.0.26
+  - @llamaindex/replicate@0.0.26
+  - @llamaindex/readers@1.0.19
+  - @llamaindex/groq@0.0.41
+  - @llamaindex/vllm@0.0.12
+
+## 0.8.25
+
+### Patch Changes
+
+- Updated dependencies [7e8230b]
+- Updated dependencies [8be4589]
+  - @llamaindex/readers@1.0.18
+  - @llamaindex/cloud@2.0.16
+  - @llamaindex/core@0.4.16
+  - @llamaindex/env@0.1.24
+  - @llamaindex/node-parser@0.0.17
+  - @llamaindex/anthropic@0.0.25
+  - @llamaindex/clip@0.0.25
+  - @llamaindex/deepinfra@0.0.25
+  - @llamaindex/groq@0.0.40
+  - @llamaindex/huggingface@0.0.25
+  - @llamaindex/ollama@0.0.32
+  - @llamaindex/openai@0.1.41
+  - @llamaindex/portkey-ai@0.0.25
+  - @llamaindex/replicate@0.0.25
+  - @llamaindex/vllm@0.0.11
+
+## 0.8.24
+
+### Patch Changes
+
+- 515f2c1: Add vector store for CosmosDB
+
+## 0.8.23
+
+### Patch Changes
+
+- Updated dependencies [d2b2722]
+  - @llamaindex/env@0.1.23
+  - @llamaindex/cloud@2.0.15
+  - @llamaindex/core@0.4.15
+  - @llamaindex/node-parser@0.0.16
+  - @llamaindex/anthropic@0.0.24
+  - @llamaindex/clip@0.0.24
+  - @llamaindex/deepinfra@0.0.24
+  - @llamaindex/groq@0.0.39
+  - @llamaindex/huggingface@0.0.24
+  - @llamaindex/ollama@0.0.31
+  - @llamaindex/openai@0.1.40
+  - @llamaindex/portkey-ai@0.0.24
+  - @llamaindex/replicate@0.0.24
+  - @llamaindex/readers@1.0.17
+  - @llamaindex/vllm@0.0.10
+
+## 0.8.22
+
+### Patch Changes
+
+- 819af45: feat: add Azure Cosmos DB Mongo vCore ChatStore
+- Updated dependencies [969365c]
+  - @llamaindex/env@0.1.22
+  - @llamaindex/cloud@2.0.14
+  - @llamaindex/core@0.4.14
+  - @llamaindex/node-parser@0.0.15
+  - @llamaindex/anthropic@0.0.23
+  - @llamaindex/clip@0.0.23
+  - @llamaindex/deepinfra@0.0.23
+  - @llamaindex/groq@0.0.38
+  - @llamaindex/huggingface@0.0.23
+  - @llamaindex/ollama@0.0.30
+  - @llamaindex/openai@0.1.39
+  - @llamaindex/portkey-ai@0.0.23
+  - @llamaindex/replicate@0.0.23
+  - @llamaindex/readers@1.0.16
+  - @llamaindex/vllm@0.0.9
+
+## 0.8.21
+
+### Patch Changes
+
+- 83c3897: fix: pinecone vector store search
+- efa2211: feat: add Azure Cosmos DB mongo vCore DocumentStore, IndexStore, KVStore
+
+## 0.8.20
+
+### Patch Changes
+
+- 02b22da: fix: supports Vercel bundling
+
+## 0.8.19
+
+### Patch Changes
+
+- 90d265c: chore: bump version
+- Updated dependencies [90d265c]
+  - @llamaindex/cloud@2.0.13
+  - @llamaindex/core@0.4.13
+  - @llamaindex/env@0.1.21
+  - @llamaindex/node-parser@0.0.14
+  - @llamaindex/readers@1.0.15
+  - @llamaindex/anthropic@0.0.22
+  - @llamaindex/groq@0.0.37
+  - @llamaindex/ollama@0.0.29
+  - @llamaindex/openai@0.1.38
+  - @llamaindex/portkey-ai@0.0.22
+  - @llamaindex/clip@0.0.22
+  - @llamaindex/deepinfra@0.0.22
+  - @llamaindex/huggingface@0.0.22
+  - @llamaindex/replicate@0.0.22
+  - @llamaindex/vllm@0.0.8
+
+## 0.8.18
+
+### Patch Changes
+
+- d17450f: fix: rename from serverComponentsExternalPackages to serverExternalPackages
+- Updated dependencies [ef4f63d]
+  - @llamaindex/core@0.4.12
+  - @llamaindex/cloud@2.0.12
+  - @llamaindex/node-parser@0.0.13
+  - @llamaindex/anthropic@0.0.21
+  - @llamaindex/clip@0.0.21
+  - @llamaindex/deepinfra@0.0.21
+  - @llamaindex/huggingface@0.0.21
+  - @llamaindex/ollama@0.0.28
+  - @llamaindex/openai@0.1.37
+  - @llamaindex/portkey-ai@0.0.21
+  - @llamaindex/replicate@0.0.21
+  - @llamaindex/readers@1.0.14
+  - @llamaindex/groq@0.0.36
+  - @llamaindex/vllm@0.0.7
+
+## 0.8.17
+
+### Patch Changes
+
+- Updated dependencies [6d22fa2]
+  - @llamaindex/core@0.4.11
+  - @llamaindex/cloud@2.0.11
+  - @llamaindex/node-parser@0.0.12
+  - @llamaindex/anthropic@0.0.20
+  - @llamaindex/clip@0.0.20
+  - @llamaindex/deepinfra@0.0.20
+  - @llamaindex/huggingface@0.0.20
+  - @llamaindex/ollama@0.0.27
+  - @llamaindex/openai@0.1.36
+  - @llamaindex/portkey-ai@0.0.20
+  - @llamaindex/replicate@0.0.20
+  - @llamaindex/readers@1.0.13
+  - @llamaindex/groq@0.0.35
+  - @llamaindex/vllm@0.0.6
+
+## 0.8.16
+
+### Patch Changes
+
+- Updated dependencies [e60328b]
+  - @llamaindex/readers@1.0.12
+
+## 0.8.15
+
+### Patch Changes
+
+- 3d503cb: Update azure cosmos db
+- 5dae534: fix: propagate queryStr to concrete vectorStore
+
+## 0.8.14
+
+### Patch Changes
+
+- 630b425: feat: add Azure CosmosDB NoSql Chat store
+
+## 0.8.13
+
+### Patch Changes
+
+- Updated dependencies [a7b0ac3]
+- Updated dependencies [a7b0ac3]
+- Updated dependencies [c69605f]
+  - @llamaindex/anthropic@0.0.19
+  - @llamaindex/core@0.4.10
+  - @llamaindex/cloud@2.0.10
+  - @llamaindex/node-parser@0.0.11
+  - @llamaindex/clip@0.0.19
+  - @llamaindex/deepinfra@0.0.19
+  - @llamaindex/huggingface@0.0.19
+  - @llamaindex/ollama@0.0.26
+  - @llamaindex/openai@0.1.35
+  - @llamaindex/portkey-ai@0.0.19
+  - @llamaindex/replicate@0.0.19
+  - @llamaindex/readers@1.0.11
+  - @llamaindex/groq@0.0.34
+  - @llamaindex/vllm@0.0.5
+
+## 0.8.12
+
+### Patch Changes
+
+- Updated dependencies [7ae6eaa]
+  - @llamaindex/core@0.4.9
+  - @llamaindex/openai@0.1.34
+  - @llamaindex/cloud@2.0.9
+  - @llamaindex/node-parser@0.0.10
+  - @llamaindex/anthropic@0.0.18
+  - @llamaindex/clip@0.0.18
+  - @llamaindex/deepinfra@0.0.18
+  - @llamaindex/huggingface@0.0.18
+  - @llamaindex/ollama@0.0.25
+  - @llamaindex/portkey-ai@0.0.18
+  - @llamaindex/replicate@0.0.18
+  - @llamaindex/readers@1.0.10
+  - @llamaindex/groq@0.0.33
+  - @llamaindex/vllm@0.0.4
+
+## 0.8.11
+
+### Patch Changes
+
+- Updated dependencies [f865c98]
+  - @llamaindex/core@0.4.8
+  - @llamaindex/cloud@2.0.8
+  - @llamaindex/node-parser@0.0.9
+  - @llamaindex/anthropic@0.0.17
+  - @llamaindex/clip@0.0.17
+  - @llamaindex/deepinfra@0.0.17
+  - @llamaindex/huggingface@0.0.17
+  - @llamaindex/ollama@0.0.24
+  - @llamaindex/openai@0.1.33
+  - @llamaindex/portkey-ai@0.0.17
+  - @llamaindex/replicate@0.0.17
+  - @llamaindex/readers@1.0.9
+  - @llamaindex/groq@0.0.32
+  - @llamaindex/vllm@0.0.3
+
+## 0.8.10
+
+### Patch Changes
+
+- f066e50: feat: vllm support
+- Updated dependencies [f066e50]
+- Updated dependencies [d89ebe0]
+- Updated dependencies [fd8c882]
+  - @llamaindex/vllm@0.0.2
+  - @llamaindex/core@0.4.7
+  - @llamaindex/cloud@2.0.7
+  - @llamaindex/node-parser@0.0.8
+  - @llamaindex/anthropic@0.0.16
+  - @llamaindex/clip@0.0.16
+  - @llamaindex/deepinfra@0.0.16
+  - @llamaindex/huggingface@0.0.16
+  - @llamaindex/ollama@0.0.23
+  - @llamaindex/openai@0.1.32
+  - @llamaindex/portkey-ai@0.0.16
+  - @llamaindex/replicate@0.0.16
+  - @llamaindex/readers@1.0.8
+  - @llamaindex/groq@0.0.31
+
+## 0.8.9
+
+### Patch Changes
+
+- 4fc001c: chore: bump `@huggingface/transformers`
+
+  Upgrade to v3, please read https://github.com/huggingface/transformers.js/releases/tag/3.0.0 for more information.
+
+- 4d4cd8a: feat: support ollama tool call
+
+  Note that `OllamaEmbedding` now is not the subclass of `Ollama`.
+
+- Updated dependencies [4fc001c]
+- Updated dependencies [4d4cd8a]
+  - @llamaindex/env@0.1.20
+  - @llamaindex/clip@0.0.15
+  - @llamaindex/huggingface@0.0.15
+  - @llamaindex/ollama@0.0.22
+  - @llamaindex/cloud@2.0.6
+  - @llamaindex/core@0.4.6
+  - @llamaindex/node-parser@0.0.7
+  - @llamaindex/anthropic@0.0.15
+  - @llamaindex/deepinfra@0.0.15
+  - @llamaindex/groq@0.0.30
+  - @llamaindex/openai@0.1.31
+  - @llamaindex/portkey-ai@0.0.15
+  - @llamaindex/replicate@0.0.15
+  - @llamaindex/readers@1.0.7
+
+## 0.8.8
+
+### Patch Changes
+
+- ad85bd0: - fix agent chat message not saved into the task context when streaming
+  - fix async local storage might use `node:async_hook` in edge-light/workerd condition
+- Updated dependencies [ad85bd0]
+  - @llamaindex/core@0.4.5
+  - @llamaindex/env@0.1.19
+  - @llamaindex/node-parser@0.0.6
+  - @llamaindex/cloud@2.0.5
+  - @llamaindex/anthropic@0.0.14
+  - @llamaindex/clip@0.0.14
+  - @llamaindex/deepinfra@0.0.14
+  - @llamaindex/huggingface@0.0.14
+  - @llamaindex/ollama@0.0.21
+  - @llamaindex/openai@0.1.30
+  - @llamaindex/portkey-ai@0.0.14
+  - @llamaindex/replicate@0.0.14
+  - @llamaindex/readers@1.0.6
+  - @llamaindex/groq@0.0.29
+
+## 0.8.7
+
+### Patch Changes
+
+- Updated dependencies [a8d3fa6]
+  - @llamaindex/env@0.1.18
+  - @llamaindex/cloud@2.0.4
+  - @llamaindex/core@0.4.4
+  - @llamaindex/node-parser@0.0.5
+  - @llamaindex/anthropic@0.0.13
+  - @llamaindex/clip@0.0.13
+  - @llamaindex/deepinfra@0.0.13
+  - @llamaindex/groq@0.0.28
+  - @llamaindex/huggingface@0.0.13
+  - @llamaindex/ollama@0.0.20
+  - @llamaindex/openai@0.1.29
+  - @llamaindex/portkey-ai@0.0.13
+  - @llamaindex/replicate@0.0.13
+  - @llamaindex/readers@1.0.5
+
+## 0.8.6
+
+### Patch Changes
+
+- 95a5cc6: refactor: move storage into core
+- Updated dependencies [95a5cc6]
+  - @llamaindex/core@0.4.3
+  - @llamaindex/cloud@2.0.3
+  - @llamaindex/node-parser@0.0.4
+  - @llamaindex/anthropic@0.0.12
+  - @llamaindex/clip@0.0.12
+  - @llamaindex/deepinfra@0.0.12
+  - @llamaindex/huggingface@0.0.12
+  - @llamaindex/ollama@0.0.19
+  - @llamaindex/openai@0.1.28
+  - @llamaindex/portkey-ai@0.0.12
+  - @llamaindex/replicate@0.0.12
+  - @llamaindex/readers@1.0.4
+  - @llamaindex/groq@0.0.27
+
+## 0.8.5
+
+### Patch Changes
+
+- 14cc9eb: chore: move multi-model into single sub module
+- a6db5dd: feat: add baseUrl and timeout option in cohere rerank
+- 396b1e1: feat: add Azure Cosmos DB DocumentStore, IndexStore, KVStore, update vectorStore and examples
+- Updated dependencies [14cc9eb]
+  - @llamaindex/env@0.1.17
+  - @llamaindex/clip@0.0.11
+  - @llamaindex/huggingface@0.0.11
+  - @llamaindex/cloud@2.0.2
+  - @llamaindex/core@0.4.2
+  - @llamaindex/node-parser@0.0.3
+  - @llamaindex/anthropic@0.0.11
+  - @llamaindex/deepinfra@0.0.11
+  - @llamaindex/groq@0.0.26
+  - @llamaindex/ollama@0.0.18
+  - @llamaindex/openai@0.1.27
+  - @llamaindex/portkey-ai@0.0.11
+  - @llamaindex/replicate@0.0.11
+  - @llamaindex/readers@1.0.3
+
+## 0.8.4
+
+### Patch Changes
+
+- 35430d3: Feature/ Add AzureCosmosDBNoSqlVectorStore and SimpleCosmosDBReader
+- Updated dependencies [35430d3]
+  - @llamaindex/readers@1.0.2
+
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies [2ff0a89]
+  - @llamaindex/node-parser@0.0.2
+
+## 0.8.2
+
+### Patch Changes
+
+- c7a918c: fix: export postprocessors in core
+
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [9c73f0a]
+  - @llamaindex/core@0.4.1
+  - @llamaindex/cloud@2.0.1
+  - @llamaindex/anthropic@0.0.10
+  - @llamaindex/clip@0.0.10
+  - @llamaindex/deepinfra@0.0.10
+  - @llamaindex/huggingface@0.0.10
+  - @llamaindex/ollama@0.0.17
+  - @llamaindex/openai@0.1.26
+  - @llamaindex/portkey-ai@0.0.10
+  - @llamaindex/replicate@0.0.10
+  - @llamaindex/readers@1.0.1
+  - @llamaindex/groq@0.0.25
+
+## 0.8.0
+
+### Minor Changes
+
+- 98ba1e7: fea:t implement context-aware agent
+
+### Patch Changes
+
+- 359fd33: refactor(core): move `ContextChatEngine` and `SimpleChatEngine`
+- efb7e1b: refactor: move `RetrieverQueryEngine` into core module
+- 620c63c: feat: add `@llamaindex/readers` package
+
+  If you are using import `llamaindex/readers/...`,
+  you will need to install `@llamaindex/core` and change import path to `@llamaindex/readers/...`.
+
+- Updated dependencies [359fd33]
+- Updated dependencies [efb7e1b]
+- Updated dependencies [98ba1e7]
+- Updated dependencies [620c63c]
+  - @llamaindex/core@0.4.0
+  - @llamaindex/cloud@2.0.0
+  - @llamaindex/anthropic@0.0.9
+  - @llamaindex/clip@0.0.9
+  - @llamaindex/deepinfra@0.0.9
+  - @llamaindex/huggingface@0.0.9
+  - @llamaindex/ollama@0.0.16
+  - @llamaindex/openai@0.1.25
+  - @llamaindex/portkey-ai@0.0.9
+  - @llamaindex/replicate@0.0.9
+  - @llamaindex/readers@1.0.0
+  - @llamaindex/groq@0.0.24
+
+## 0.7.10
+
+### Patch Changes
+
+- 9df9a8f: fix: export all huggingface module
+- Updated dependencies [60b185f]
+  - @llamaindex/core@0.3.7
+  - @llamaindex/cloud@1.0.8
+  - @llamaindex/anthropic@0.0.8
+  - @llamaindex/clip@0.0.8
+  - @llamaindex/deepinfra@0.0.8
+  - @llamaindex/huggingface@0.0.8
+  - @llamaindex/ollama@0.0.15
+  - @llamaindex/openai@0.1.24
+  - @llamaindex/portkey-ai@0.0.8
+  - @llamaindex/replicate@0.0.8
+  - @llamaindex/groq@0.0.23
+
+## 0.7.9
+
+### Patch Changes
+
+- 691c5bc: fix: export embeddings utils
+- Updated dependencies [691c5bc]
+  - @llamaindex/core@0.3.6
+  - @llamaindex/cloud@1.0.7
+  - @llamaindex/anthropic@0.0.7
+  - @llamaindex/clip@0.0.7
+  - @llamaindex/deepinfra@0.0.7
+  - @llamaindex/huggingface@0.0.7
+  - @llamaindex/ollama@0.0.14
+  - @llamaindex/openai@0.1.23
+  - @llamaindex/portkey-ai@0.0.7
+  - @llamaindex/replicate@0.0.7
+  - @llamaindex/groq@0.0.22
+
+## 0.7.8
+
+### Patch Changes
+
+- Updated dependencies [fa60fc6]
+  - @llamaindex/env@0.1.16
+  - @llamaindex/cloud@1.0.6
+  - @llamaindex/core@0.3.5
+  - @llamaindex/anthropic@0.0.6
+  - @llamaindex/clip@0.0.6
+  - @llamaindex/deepinfra@0.0.6
+  - @llamaindex/groq@0.0.21
+  - @llamaindex/huggingface@0.0.6
+  - @llamaindex/ollama@0.0.13
+  - @llamaindex/openai@0.1.22
+  - @llamaindex/portkey-ai@0.0.6
+  - @llamaindex/replicate@0.0.6
+
+## 0.7.7
+
+### Patch Changes
+
+- Updated dependencies [e2a0876]
+  - @llamaindex/core@0.3.4
+  - @llamaindex/cloud@1.0.5
+  - @llamaindex/anthropic@0.0.5
+  - @llamaindex/clip@0.0.5
+  - @llamaindex/deepinfra@0.0.5
+  - @llamaindex/huggingface@0.0.5
+  - @llamaindex/ollama@0.0.12
+  - @llamaindex/openai@0.1.21
+  - @llamaindex/portkey-ai@0.0.5
+  - @llamaindex/replicate@0.0.5
+  - @llamaindex/groq@0.0.20
+
+## 0.7.6
+
+### Patch Changes
+
+- 534d550: fix: replicate deps warning in nextjs
+
+## 0.7.5
+
+### Patch Changes
+
+- e9a111d: fix: VectorIndexRetrieverOptions typing
+- 9f22aae: fix: unable to resolve unpdf in nextjs
+
+## 0.7.4
+
+### Patch Changes
+
+- Updated dependencies [06f632b]
+  - @llamaindex/cloud@1.0.4
+
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [0493f67]
+  - @llamaindex/core@0.3.3
+  - @llamaindex/cloud@1.0.3
+  - @llamaindex/anthropic@0.0.4
+  - @llamaindex/clip@0.0.4
+  - @llamaindex/deepinfra@0.0.4
+  - @llamaindex/huggingface@0.0.4
+  - @llamaindex/ollama@0.0.11
+  - @llamaindex/openai@0.1.20
+  - @llamaindex/portkey-ai@0.0.4
+  - @llamaindex/replicate@0.0.4
+  - @llamaindex/groq@0.0.19
+
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies [4ba2cfe]
+  - @llamaindex/env@0.1.15
+  - @llamaindex/cloud@1.0.2
+  - @llamaindex/core@0.3.2
+  - @llamaindex/anthropic@0.0.3
+  - @llamaindex/clip@0.0.3
+  - @llamaindex/deepinfra@0.0.3
+  - @llamaindex/groq@0.0.18
+  - @llamaindex/huggingface@0.0.3
+  - @llamaindex/ollama@0.0.10
+  - @llamaindex/openai@0.1.19
+  - @llamaindex/portkey-ai@0.0.3
+  - @llamaindex/replicate@0.0.3
+
+## 0.7.1
+
+### Patch Changes
+
+- ae49ff4: feat: use `gpt-tokenizer`
+- 4c38c1b: fix(cloud): do not detect file type in llama parse
+- a75af83: feat: allow passing perform setup in pg vector store
+- a75af83: refactor: move some llm and embedding to single package
+- Updated dependencies [ae49ff4]
+- Updated dependencies [4c38c1b]
+- Updated dependencies [24d065f]
+- Updated dependencies [a75af83]
+  - @llamaindex/env@0.1.14
+  - @llamaindex/cloud@1.0.1
+  - @llamaindex/huggingface@0.0.2
+  - @llamaindex/portkey-ai@0.0.2
+  - @llamaindex/anthropic@0.0.2
+  - @llamaindex/deepinfra@0.0.2
+  - @llamaindex/replicate@0.0.2
+  - @llamaindex/ollama@0.0.9
+  - @llamaindex/openai@0.1.18
+  - @llamaindex/clip@0.0.2
+  - @llamaindex/groq@0.0.17
+  - @llamaindex/core@0.3.1
+
+## 0.7.0
+
+### Minor Changes
+
+- 1364e8e: update metadata extractors to use PromptTemplate
+- 96fc69c: Correct initialization of QuestionsAnsweredExtractor so that it uses the promptTemplate arg when passed in
+
+### Patch Changes
+
+- 3b7736f: feat: added gemini 002 support
+- Updated dependencies [1364e8e]
+- Updated dependencies [96fc69c]
+  - @llamaindex/core@0.3.0
+  - @llamaindex/cloud@1.0.0
+  - @llamaindex/ollama@0.0.8
+  - @llamaindex/openai@0.1.17
+  - @llamaindex/groq@0.0.16
+
+## 0.6.22
+
+### Patch Changes
+
+- 5729bd9: Fix LlamaCloud API calls for ensuring an index and for file uploads
+
+## 0.6.21
+
+### Patch Changes
+
+- 6f75306: feat: support metadata filters for AstraDB
+- 94cb4ad: feat: Add metadata filters to ChromaDb and update to 1.9.2
+
+## 0.6.20
+
+### Patch Changes
+
+- 6a9a7b1: fix: take init api key into account
+- Updated dependencies [6a9a7b1]
+  - @llamaindex/openai@0.1.16
+  - @llamaindex/groq@0.0.15
+
+## 0.6.19
+
+### Patch Changes
+
+- 62cba52: Add ensureIndex function to LlamaCloudIndex
+- d265e96: fix: ignore resolving unpdf for nextjs
+- d30bbf7: Convert undefined values to null in LlamaCloud filters
+- 53fd00a: Fix getPipelineId in LlamaCloudIndex
+
+## 0.6.18
+
+### Patch Changes
+
+- 5f67820: Fix that node parsers generate nodes with UUIDs
+- fe08d04: Fix LlamaCloud retrieval with multiple pipelines
+- Updated dependencies [5f67820]
+  - @llamaindex/core@0.2.12
+  - @llamaindex/cloud@0.2.14
+  - @llamaindex/ollama@0.0.7
+  - @llamaindex/openai@0.1.15
+  - @llamaindex/groq@0.0.14
+
+## 0.6.17
+
+### Patch Changes
+
+- ee697fb: fix: generate uuid when inserting to Qdrant
+- Updated dependencies [ee697fb]
+  - @llamaindex/core@0.2.11
+  - @llamaindex/cloud@0.2.13
+  - @llamaindex/ollama@0.0.6
+  - @llamaindex/openai@0.1.14
+  - @llamaindex/groq@0.0.13
+
+## 0.6.16
+
+### Patch Changes
+
+- 63e9846: fix: preFilters does not work with asQueryEngine
+- 6f3a31c: feat: add metadata filters for Qdrant vector store
+- Updated dependencies [3489e7d]
+- Updated dependencies [468bda5]
+  - @llamaindex/core@0.2.10
+  - @llamaindex/cloud@0.2.12
+  - @llamaindex/ollama@0.0.5
+  - @llamaindex/openai@0.1.13
+  - @llamaindex/groq@0.0.12
+
+## 0.6.15
+
+### Patch Changes
+
+- 2a82413: fix(core): set `Settings.llm` to OpenAI by default and support lazy load openai
+- Updated dependencies [2a82413]
+- Updated dependencies [0b20ff9]
+  - @llamaindex/groq@0.0.11
+  - @llamaindex/openai@0.1.12
+  - @llamaindex/cloud@0.2.11
+
+## 0.6.14
+
+### Patch Changes
+
+- Updated dependencies [b17d439]
+  - @llamaindex/core@0.2.9
+  - @llamaindex/ollama@0.0.4
+  - @llamaindex/openai@0.1.11
+  - @llamaindex/groq@0.0.10
+
+## 0.6.13
+
+### Patch Changes
+
+- Updated dependencies [981811e]
+  - @llamaindex/cloud@0.2.10
+
+## 0.6.12
+
+### Patch Changes
+
+- f7b4e94: feat: add filters for pinecone
+- 78037a6: fix: bypass service context embed model
+- 1d9e3b1: fix: export llama reader in non-nodejs runtime
+
+## 0.6.11
+
+### Patch Changes
+
+- df441e2: fix: consoleLogger is missing from `@llamaindex/env`
+- Updated dependencies [df441e2]
+  - @llamaindex/cloud@0.2.9
+  - @llamaindex/core@0.2.8
+  - @llamaindex/env@0.1.13
+  - @llamaindex/ollama@0.0.3
+  - @llamaindex/openai@0.1.10
+  - @llamaindex/groq@0.0.9
+
+## 0.6.10
+
+### Patch Changes
+
+- ebc5105: feat: support `@vercel/postgres`
+- 6cce3b1: feat: support `npm:postgres`
+- Updated dependencies [96f72ad]
+- Updated dependencies [6cce3b1]
+  - @llamaindex/openai@0.1.9
+  - @llamaindex/core@0.2.7
+  - @llamaindex/groq@0.0.8
+  - @llamaindex/ollama@0.0.2
+
+## 0.6.9
+
+### Patch Changes
+
+- Updated dependencies [ac41ed3]
+  - @llamaindex/cloud@0.2.8
+
+## 0.6.8
+
+### Patch Changes
+
+- 8b7fdba: refactor: move chat engine & retriever into core.
+
+  - `chatHistory` in BaseChatEngine now returns `ChatMessage[] | Promise<ChatMessage[]>`, instead of `BaseMemory`
+  - update `retrieve-end` type
+
+- Updated dependencies [8b7fdba]
+  - @llamaindex/core@0.2.6
+  - @llamaindex/openai@0.1.8
+  - @llamaindex/groq@0.0.7
+
+## 0.6.7
+
+### Patch Changes
+
+- 23bcc37: fix: add `serializer` in doc store
+
+  `PostgresDocumentStore` now will not use JSON.stringify for better performance
+
+## 0.6.6
+
+### Patch Changes
+
+- d902cc3: Fix context not being sent using ContextChatEngine
+- 025ffe6: fix: update `PostgresKVStore` constructor params
+- a659574: Adds upstash vector store as a storage
+- Updated dependencies [d902cc3]
+  - @llamaindex/core@0.2.5
+  - @llamaindex/openai@0.1.7
+  - @llamaindex/groq@0.0.6
+
+## 0.6.5
+
+### Patch Changes
+
+- e9714db: feat: update `PGVectorStore`
+
+  - move constructor parameter `config.user` | `config.database` | `config.password` | `config.connectionString` into `config.clientConfig`
+  - if you pass `pg.Client` or `pg.Pool` instance to `PGVectorStore`, move it to `config.client`, setting `config.shouldConnect` to false if it's already connected
+  - default value of `PGVectorStore.collection` is now `"data"` instead of `""` (empty string)
+
+## 0.6.4
+
+### Patch Changes
+
+- b48bcc3: feat: add `load-transformers` event type when loading `@xenova/transformers` module
+
+  This would benefit user who want to customize the transformer env.
+
+- Updated dependencies [b48bcc3]
+  - @llamaindex/core@0.2.4
+  - @llamaindex/env@0.1.12
+  - @llamaindex/openai@0.1.6
+  - @llamaindex/groq@0.0.5
+
+## 0.6.3
+
+### Patch Changes
+
+- 2cd1383: refactor: align `response-synthesizers` & `chat-engine` module
+
+  - builtin event system
+  - correct class extends
+  - aligin APIs, naming with llama-index python
+  - move stream out of first parameter to second parameter for the better tyep checking
+  - remove JSONQueryEngine in `@llamaindex/experimental`, as the code quality is not satisify and we will bring it back later
+
+- 5c4badb: Extend JinaAPIEmbedding parameters
+- Updated dependencies [fb36eff]
+- Updated dependencies [d24d3d1]
+- Updated dependencies [2cd1383]
+  - @llamaindex/cloud@0.2.7
+  - @llamaindex/core@0.2.3
+  - @llamaindex/openai@0.1.5
+  - @llamaindex/groq@0.0.4
+
+## 0.6.2
+
+### Patch Changes
+
+- 749b43a: fix: clip embedding transform function
+- Updated dependencies [b42adeb]
+- Updated dependencies [749b43a]
+  - @llamaindex/cloud@0.2.6
+  - @llamaindex/core@0.2.2
+  - @llamaindex/openai@0.1.4
+  - @llamaindex/groq@0.0.3
+
+## 0.6.1
+
+### Patch Changes
+
+- fbd5e01: refactor: move groq as llm package
+- 6b70c54: feat: update JinaAIEmbedding, support embedding v3
+- 1a6137b: feat: experimental support for browser
+
+  If you see bundler issue in next.js edge runtime, please bump to `next@14` latest version.
+
+- 85c2e19: feat: `@llamaindex/cloud` package update
+
+  - Bump to latest openapi schema
+  - Move LlamaParse class from llamaindex, this will allow you use llamaparse in more non-node.js environment
+
+- Updated dependencies [ac07e3c]
+- Updated dependencies [fbd5e01]
+- Updated dependencies [70ccb4a]
+- Updated dependencies [1a6137b]
+- Updated dependencies [85c2e19]
+- Updated dependencies [ac07e3c]
+  - @llamaindex/core@0.2.1
+  - @llamaindex/env@0.1.11
+  - @llamaindex/groq@0.0.2
+  - @llamaindex/cloud@0.2.5
+  - @llamaindex/openai@0.1.3
+
+## 0.6.0
+
+### Minor Changes
+
+- 11feef8: Add workflows
+
+### Patch Changes
+
+- Updated dependencies [11feef8]
+  - @llamaindex/core@0.2.0
+  - @llamaindex/openai@0.1.2
+
+## 0.5.27
+
+### Patch Changes
+
+- 7edeb1c: feat: decouple openai from `llamaindex` module
+
+  This should be a non-breaking change, but just you can now only install `@llamaindex/openai` to reduce the bundle size in the future
+
+- Updated dependencies [7edeb1c]
+  - @llamaindex/openai@0.1.1
+
+## 0.5.26
+
+### Patch Changes
+
+- ffe0cd1: faet: add openai o1 support
+- ffe0cd1: feat: add PostgreSQL storage
+
 ## 0.5.25
 
 ### Patch Changes

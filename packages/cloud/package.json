@@ -1,41 +1,68 @@
 {
   "name": "@llamaindex/cloud",
-  "version": "0.2.4",
+  "version": "3.0.2",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "generate": "pnpx @hey-api/openapi-ts@0.53.0",
-    "build": "pnpm run generate && bunchee"
+    "generate": "./node_modules/.bin/openapi-ts",
+    "build": "pnpm run generate && bunchee",
+    "dev": "bunchee --watch"
   },
   "files": [
     "openapi.json",
-    "dist"
+    "./api",
+    "./reader"
   ],
   "exports": {
     "./openapi.json": "./openapi.json",
     "./api": {
       "require": {
-        "types": "./dist/api.d.cts",
-        "default": "./dist/api.cjs"
+        "types": "./api/dist/index.d.cts",
+        "default": "./api/dist/index.cjs"
       },
       "import": {
-        "types": "./dist/api.d.ts",
-        "default": "./dist/api.js"
+        "types": "./api/dist/index.d.ts",
+        "default": "./api/dist/index.js"
       },
-      "default": {
-        "types": "./dist/api.d.ts",
-        "default": "./dist/api.js"
-      }
+      "default": "./api/dist/index.js"
+    },
+    "./reader": {
+      "require": {
+        "types": "./reader/dist/index.d.cts",
+        "default": "./reader/dist/index.cjs"
+      },
+      "import": {
+        "types": "./reader/dist/index.d.ts",
+        "default": "./reader/dist/index.js"
+      },
+      "default": "./reader/dist/index.js"
+    },
+    ".": {
+      "require": {
+        "types": "./reader/dist/index.d.cts",
+        "default": "./reader/dist/index.cjs"
+      },
+      "import": {
+        "types": "./reader/dist/index.d.ts",
+        "default": "./reader/dist/index.js"
+      },
+      "default": "./reader/dist/index.js"
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/himself65/LlamaIndexTS.git",
+    "url": "git+https://github.com/run-llama/LlamaIndexTS.git",
     "directory": "packages/cloud"
   },
   "devDependencies": {
-    "@hey-api/client-fetch": "^0.2.4",
-    "@hey-api/openapi-ts": "^0.53.0",
-    "bunchee": "5.3.2"
+    "@hey-api/client-fetch": "^0.6.0",
+    "@hey-api/openapi-ts": "^0.61.0",
+    "@llamaindex/core": "workspace:*",
+    "@llamaindex/env": "workspace:*",
+    "bunchee": "6.3.4"
+  },
+  "peerDependencies": {
+    "@llamaindex/core": "workspace:*",
+    "@llamaindex/env": "workspace:*"
   }
 }

@@ -1,16 +1,17 @@
-import {
-  DEFAULT_IMAGE_VECTOR_NAMESPACE,
-  DEFAULT_NAMESPACE,
-} from "@llamaindex/core/global";
+import { DEFAULT_NAMESPACE } from "@llamaindex/core/global";
 import { ModalityType, ObjectType } from "@llamaindex/core/schema";
-import { path } from "@llamaindex/env";
-import { getImageEmbedModel } from "../internal/settings/image-embed-model.js";
+import type { BaseDocumentStore } from "@llamaindex/core/storage/doc-store";
+import {
+  BaseIndexStore,
+  SimpleIndexStore,
+} from "@llamaindex/core/storage/index-store";
+import type {
+  BaseVectorStore,
+  VectorStoreByType,
+} from "@llamaindex/core/vector-store";
+import { Settings } from "../Settings.js";
 import { SimpleVectorStore } from "../vector-store/SimpleVectorStore.js";
-import type { VectorStore, VectorStoreByType } from "../vector-store/types.js";
 import { SimpleDocumentStore } from "./docStore/SimpleDocumentStore.js";
-import type { BaseDocumentStore } from "./docStore/types.js";
-import { SimpleIndexStore } from "./indexStore/SimpleIndexStore.js";
-import type { BaseIndexStore } from "./indexStore/types.js";
 
 export interface StorageContext {
   docStore: BaseDocumentStore;
@@ -21,9 +22,8 @@ export interface StorageContext {
 type BuilderParams = {
   docStore: BaseDocumentStore;
   indexStore: BaseIndexStore;
-  vectorStore: VectorStore;
+  vectorStore: BaseVectorStore;
   vectorStores: VectorStoreByType;
-  storeImages: boolean;
   persistDir: string;
 };
 
@@ -32,7 +32,6 @@ export async function storageContextFromDefaults({
   indexStore,
   vectorStore,
   vectorStores,
-  storeImages,
   persistDir,
 }: Partial<BuilderParams>): Promise<StorageContext> {
   vectorStores = vectorStores ?? {};
@@ -42,12 +41,8 @@ export async function storageContextFromDefaults({
     if (!(ModalityType.TEXT in vectorStores)) {
       vectorStores[ModalityType.TEXT] = vectorStore ?? new SimpleVectorStore();
     }
-    if (storeImages && !(ModalityType.IMAGE in vectorStores)) {
-      vectorStores[ModalityType.IMAGE] = new SimpleVectorStore({
-        embedModel: new (await getImageEmbedModel())(),
-      });
-    }
   } else {
+    const embedModel = Settings.embedModel;
     docStore =
       docStore ||
       (await SimpleDocumentStore.fromPersistDir(persistDir, DEFAULT_NAMESPACE));
@@ -55,13 +50,8 @@ export async function storageContextFromDefaults({
       indexStore || (await SimpleIndexStore.fromPersistDir(persistDir));
     if (!(ObjectType.TEXT in vectorStores)) {
       vectorStores[ModalityType.TEXT] =
-        vectorStore ?? (await SimpleVectorStore.fromPersistDir(persistDir));
-    }
-    if (storeImages && !(ObjectType.IMAGE in vectorStores)) {
-      vectorStores[ModalityType.IMAGE] = await SimpleVectorStore.fromPersistDir(
-        path.join(persistDir, DEFAULT_IMAGE_VECTOR_NAMESPACE),
-        new (await getImageEmbedModel())(),
-      );
+        vectorStore ??
+        (await SimpleVectorStore.fromPersistDir(persistDir, embedModel));
     }
   }
 

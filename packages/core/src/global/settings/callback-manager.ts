@@ -1,4 +1,5 @@
 import { AsyncLocalStorage, CustomEvent } from "@llamaindex/env";
+import type { AgentEndEvent, AgentStartEvent } from "../../agent";
 import type {
   ChatMessage,
   ChatResponse,
@@ -6,9 +7,15 @@ import type {
   ToolCall,
   ToolOutput,
 } from "../../llms";
+import type { QueryEndEvent, QueryStartEvent } from "../../query-engine";
+import type {
+  SynthesizeEndEvent,
+  SynthesizeStartEvent,
+} from "../../response-synthesizers";
+import type { RetrieveEndEvent, RetrieveStartEvent } from "../../retriever";
 import { TextNode } from "../../schema";
-import { EventCaller, getEventCaller } from "../../utils/event-caller";
 import type { UUID } from "../type";
+import { EventCaller, getEventCaller } from "./event-caller";
 
 export type LLMStartEvent = {
   id: UUID;
@@ -60,8 +67,17 @@ export interface LlamaIndexEventMaps {
   "chunking-end": ChunkingEndEvent;
   "node-parsing-start": NodeParsingStartEvent;
   "node-parsing-end": NodeParsingEndEvent;
+  "query-start": QueryStartEvent;
+  "query-end": QueryEndEvent;
+  "synthesize-start": SynthesizeStartEvent;
+  "synthesize-end": SynthesizeEndEvent;
+  "retrieve-start": RetrieveStartEvent;
+  "retrieve-end": RetrieveEndEvent;
+  "agent-start": AgentStartEvent;
+  "agent-end": AgentEndEvent;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class LlamaIndexCustomEvent<T = any> extends CustomEvent<T> {
   reason: EventCaller | null = null;
   private constructor(
@@ -88,6 +104,7 @@ export class LlamaIndexCustomEvent<T = any> extends CustomEvent<T> {
 type EventHandler<Event> = (event: LlamaIndexCustomEvent<Event>) => void;
 
 export class CallbackManager {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #handlers = new Map<keyof LlamaIndexEventMaps, EventHandler<any>[]>();
 
   on<K extends keyof LlamaIndexEventMaps>(
@@ -119,16 +136,29 @@ export class CallbackManager {
   dispatchEvent<K extends keyof LlamaIndexEventMaps>(
     event: K,
     detail: LlamaIndexEventMaps[K],
+    sync = false,
   ) {
     const cbs = this.#handlers.get(event);
     if (!cbs) {
       return;
     }
-    queueMicrotask(() => {
+    if (typeof queueMicrotask === "undefined") {
+      console.warn(
+        "queueMicrotask is not available, dispatching synchronously",
+      );
+      sync = true;
+    }
+    if (sync) {
       cbs.forEach((handler) =>
         handler(LlamaIndexCustomEvent.fromEvent(event, { ...detail })),
       );
-    });
+    } else {
+      queueMicrotask(() => {
+        cbs.forEach((handler) =>
+          handler(LlamaIndexCustomEvent.fromEvent(event, { ...detail })),
+        );
+      });
+    }
   }
 }
 

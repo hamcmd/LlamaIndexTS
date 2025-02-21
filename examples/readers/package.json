@@ -15,14 +15,17 @@
     "start:llamaparse-dir": "node --import tsx ./src/simple-directory-reader-with-llamaparse.ts",
     "start:llamaparse-json": "node --import tsx ./src/llamaparse-json.ts",
     "start:discord": "node --import tsx ./src/discord.ts",
-    "start:json": "node --import tsx ./src/json.ts"
+    "start:json": "node --import tsx ./src/json.ts",
+    "start:obsidian": "node --import tsx ./src/obsidian.ts"
   },
   "dependencies": {
-    "llamaindex": "*"
+    "@llamaindex/cloud": "workspace:* || ^2.0.24",
+    "@llamaindex/readers": "workspace:* || ^1.0.25",
+    "llamaindex": "workspace:* || ^0.8.37"
   },
   "devDependencies": {
-    "@types/node": "^22.5.1",
+    "@types/node": "^22.9.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.7.2"
   }
 }

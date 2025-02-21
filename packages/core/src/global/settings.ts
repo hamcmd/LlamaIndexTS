@@ -1,4 +1,6 @@
-import type { Tokenizer } from "@llamaindex/env";
+import { getEnv } from "@llamaindex/env";
+import type { Tokenizer } from "@llamaindex/env/tokenizers";
+import type { BaseEmbedding } from "../embeddings";
 import type { LLM } from "../llms";
 import {
   type CallbackManager,
@@ -11,6 +13,11 @@ import {
   setChunkSize,
   withChunkSize,
 } from "./settings/chunk-size";
+import {
+  getEmbeddedModel,
+  setEmbeddedModel,
+  withEmbeddedModel,
+} from "./settings/embedModel";
 import { getLLM, setLLM, withLLM } from "./settings/llm";
 import {
   getTokenizer,
@@ -27,6 +34,15 @@ export const Settings = {
   },
   withLLM<Result>(llm: LLM, fn: () => Result): Result {
     return withLLM(llm, fn);
+  },
+  get embedModel() {
+    return getEmbeddedModel();
+  },
+  set embedModel(embedModel) {
+    setEmbeddedModel(embedModel);
+  },
+  withEmbedModel<Result>(embedModel: BaseEmbedding, fn: () => Result): Result {
+    return withEmbeddedModel(embedModel, fn);
   },
   get tokenizer() {
     return getTokenizer();
@@ -60,5 +76,17 @@ export const Settings = {
     fn: () => Result,
   ): Result {
     return withCallbackManager(callbackManager, fn);
+  },
+
+  get debug() {
+    let debug = getEnv("DEBUG");
+    if (typeof window !== "undefined") {
+      debug ||= window.localStorage.debug;
+    }
+    return (
+      (Boolean(debug) && debug?.includes("llamaindex")) ||
+      debug === "*" ||
+      debug === "true"
+    );
   },
 };

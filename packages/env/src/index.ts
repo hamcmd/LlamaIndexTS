@@ -11,6 +11,7 @@
  *
  * @module
  */
+/** rollup-private-do-not-use-esm-shim-polyfill */
 import { ok } from "node:assert";
 import { createHash, randomUUID } from "node:crypto";
 import { EOL } from "node:os";
@@ -18,7 +19,8 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import { createWriteStream, fs } from "./fs/node.js";
-import type { SHA256 } from "./polyfill.js";
+import "./global-check.js";
+import { type SHA256 } from "./node-polyfill.js";
 
 export function createSHA256(): SHA256 {
   const hash = createHash("sha256");
@@ -32,8 +34,12 @@ export function createSHA256(): SHA256 {
   };
 }
 
-export { Tokenizers, tokenizers, type Tokenizer } from "./tokenizers/node.js";
-export { AsyncLocalStorage, CustomEvent, getEnv, setEnvs } from "./utils.js";
+export const process = globalThis.process;
+
+export * from "./als/index.node.js";
+export { consoleLogger, emptyLogger, type Logger } from "./logger/index.js";
+export { CustomEvent, getEnv, setEnvs } from "./utils/index.js";
+export { NotSupportCurrentRuntimeClass } from "./utils/shared.js";
 export {
   createWriteStream,
   EOL,

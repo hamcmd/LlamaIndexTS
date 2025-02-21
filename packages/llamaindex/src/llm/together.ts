@@ -1,8 +1,8 @@
 import { getEnv } from "@llamaindex/env";
-import { OpenAI } from "./openai.js";
+import { OpenAI } from "@llamaindex/openai";
 
 export class TogetherLLM extends OpenAI {
-  constructor(init?: Partial<OpenAI>) {
+  constructor(init?: Omit<Partial<OpenAI>, "session">) {
     const {
       apiKey = getEnv("TOGETHER_API_KEY"),
       additionalSessionOptions = {},

@@ -1,15 +1,12 @@
-import {
-  PapaCSVReader,
-  storageContextFromDefaults,
-  VectorStoreIndex,
-  WeaviateVectorStore,
-} from "llamaindex";
+import { CSVReader } from "@llamaindex/readers/csv";
+import { WeaviateVectorStore } from "@llamaindex/weaviate";
+import { storageContextFromDefaults, VectorStoreIndex } from "llamaindex";
 
 const indexName = "MovieReviews";
 
 async function main() {
   try {
-    const reader = new PapaCSVReader(false);
+    const reader = new CSVReader(false);
     const docs = await reader.loadData("./data/movie_reviews.csv");
     const vectorStore = new WeaviateVectorStore({ indexName });
     const storageContext = await storageContextFromDefaults({ vectorStore });

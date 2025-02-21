@@ -2,7 +2,6 @@ import {
   type CallbackManager,
   Settings as CoreSettings,
 } from "@llamaindex/core/global";
-import { OpenAI } from "./llm/openai.js";
 
 import { PromptHelper } from "@llamaindex/core/indices";
 
@@ -12,13 +11,7 @@ import {
   type NodeParser,
   SentenceSplitter,
 } from "@llamaindex/core/node-parser";
-import { AsyncLocalStorage, getEnv } from "@llamaindex/env";
-import type { ServiceContext } from "./ServiceContext.js";
-import {
-  getEmbeddedModel,
-  setEmbeddedModel,
-  withEmbeddedModel,
-} from "./internal/settings/EmbedModel.js";
+import { AsyncLocalStorage } from "@llamaindex/env";
 
 export type PromptConfig = {
   llm?: string;
@@ -50,21 +43,10 @@ class GlobalSettings implements Config {
   #promptAsyncLocalStorage = new AsyncLocalStorage<PromptConfig>();
 
   get debug() {
-    const debug = getEnv("DEBUG");
-    return (
-      (Boolean(debug) && debug?.includes("llamaindex")) ||
-      debug === "*" ||
-      debug === "true"
-    );
+    return CoreSettings.debug;
   }
 
   get llm(): LLM {
-    // fixme: we might need check internal error instead of try-catch here
-    try {
-      CoreSettings.llm;
-    } catch (error) {
-      CoreSettings.llm = new OpenAI();
-    }
     return CoreSettings.llm;
   }
 
@@ -96,15 +78,15 @@ class GlobalSettings implements Config {
   }
 
   get embedModel(): BaseEmbedding {
-    return getEmbeddedModel();
+    return CoreSettings.embedModel;
   }
 
   set embedModel(embedModel: BaseEmbedding) {
-    setEmbeddedModel(embedModel);
+    CoreSettings.embedModel = embedModel;
   }
 
   withEmbedModel<Result>(embedModel: BaseEmbedding, fn: () => Result): Result {
-    return withEmbeddedModel(embedModel, fn);
+    return CoreSettings.withEmbedModel(embedModel, fn);
   }
 
   get nodeParser(): NodeParser {
@@ -179,43 +161,5 @@ class GlobalSettings implements Config {
     return this.#promptAsyncLocalStorage.run(prompt, fn);
   }
 }
-
-export const llmFromSettingsOrContext = (serviceContext?: ServiceContext) => {
-  if (serviceContext?.llm) {
-    return serviceContext.llm;
-  }
-
-  return Settings.llm;
-};
-
-export const nodeParserFromSettingsOrContext = (
-  serviceContext?: ServiceContext,
-) => {
-  if (serviceContext?.nodeParser) {
-    return serviceContext.nodeParser;
-  }
-
-  return Settings.nodeParser;
-};
-
-export const embedModelFromSettingsOrContext = (
-  serviceContext?: ServiceContext,
-) => {
-  if (serviceContext?.embedModel) {
-    return serviceContext.embedModel;
-  }
-
-  return Settings.embedModel;
-};
-
-export const promptHelperFromSettingsOrContext = (
-  serviceContext?: ServiceContext,
-) => {
-  if (serviceContext?.promptHelper) {
-    return serviceContext.promptHelper;
-  }
-
-  return Settings.promptHelper;
-};
 
 export const Settings = new GlobalSettings();

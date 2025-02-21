@@ -1,12 +1,12 @@
+import { LlamaParseReader } from "@llamaindex/cloud";
+import { OpenAI } from "@llamaindex/openai";
 import {
   Document,
   ImageNode,
-  LlamaParseReader,
-  OpenAI,
   PromptTemplate,
   VectorStoreIndex,
+  createMessageContent,
 } from "llamaindex";
-import { createMessageContent } from "llamaindex/synthesizers/utils";
 
 const reader = new LlamaParseReader();
 async function main() {
@@ -39,6 +39,7 @@ function getTextDocs(jsonList: { text: string; page: number }[]): Document[] {
 }
 // Download all images from jsonObjs, send them to OpenAI API to get alt text, return an array of Document objects
 async function getImageTextDocs(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   jsonObjs: Record<string, any>[],
 ): Promise<Document[]> {
   const llm = new OpenAI({
